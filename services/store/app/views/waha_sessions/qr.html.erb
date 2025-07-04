@@ -1,0 +1,7 @@
+<h1>Scan QR Code</h1>
+<p>Open WhatsApp on your phone → Settings → Linked devices → Link a device.</p>
+<% if @qr_src.present? %>
+  <img src="<%= @qr_src %>" alt="QR Code" />
+<% else %>
+  <p>No screenshot available yet.</p>
+<% end %>
