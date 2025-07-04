@@ -45,3 +45,13 @@ group :development do
   gem "web-console"
 end
 
+# HTTP client for WAHA integration
+gem "faraday", "~> 2.9"
+
+# Manage ENV variables in development
+gem "dotenv-rails", groups: [:development, :test]
+
+group :test do
+  gem "webmock"
+end
+
