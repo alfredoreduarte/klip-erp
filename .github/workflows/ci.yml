@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: store_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up asdf
+        uses: asdf-vm/actions/setup@v2
+
+      - name: Cache asdf installs
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf
+          key: ${{ runner.os }}-asdf-${{ hashFiles('.tool-versions') }}
+
+      - name: Install tools via asdf
+        run: asdf install
+
+      - name: Install bundler
+        run: gem install bundler --no-document
+
+      - name: Install dependencies
+        run: |
+          cd services/store
+          bundle install --jobs 4 --retry 3
+          yarn install --cwd . || true
+
+      - name: Prepare test DB
+        run: |
+          cd services/store
+          bin/rails db:prepare RAILS_ENV=test
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/store_test
+
+      - name: Run tests
+        run: |
+          cd services/store
+          bundle exec rake
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/store_test
+
+      - name: Build Docker images
+        run: docker compose build
