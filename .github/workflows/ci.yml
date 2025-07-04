@@ -54,7 +54,7 @@ jobs:
       - name: Run tests
         run: |
           cd services/store
-          bundle exec rake
+          bundle exec rails test
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/store_test
 

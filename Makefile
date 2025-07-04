@@ -16,7 +16,7 @@ build:
 	docker compose build
 
 test:
-	cd services/store && bundle exec rake db:test:prepare && bundle exec rake
+	cd services/store && bundle exec rails db:test:prepare && bundle exec rails test
 
 deploy:
 	./deploy.sh
