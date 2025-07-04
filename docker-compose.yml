@@ -1,0 +1,73 @@
+version: "3.9"
+
+networks:
+  traefik:
+    driver: bridge
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - traefik
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: store_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - internal
+
+  store:
+    build:
+      context: ./services/store
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:password@postgres:5432/store_dev
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY_BASE: dummy_key
+    volumes:
+      - ./services/store:/app
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.store.rule=Host(`localhost`)"
+      - "traefik.http.services.store.loadbalancer.server.port=3000"
+
+  waha:
+    image: devlikeapro/waha:latest
+    environment:
+      WAHA_SESSION_NAME: default
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.waha.rule=Host(`waha.localhost`)"
+      - "traefik.http.services.waha.loadbalancer.server.port=3000"
