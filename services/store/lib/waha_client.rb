@@ -3,7 +3,7 @@ require "faraday"
 class WahaClient
   class Error < StandardError; end
 
-  def initialize(base_url: ENV.fetch("WAHA_BASE_URL", "http://waha:3000/api"))
+  def initialize(base_url: ENV.fetch("WAHA_BASE_URL", "http://waha:3000"))
     @conn = Faraday.new(url: base_url) do |f|
       f.request :json
       f.response :json, parser_options: { symbolize_names: true }
