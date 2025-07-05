@@ -15,7 +15,11 @@ class WahaSessionsController < ApplicationController
 
   # GET /waha/qr?session=default
   def qr
-    data_uri = Base64.strict_encode64(WAHA.screenshot(session: params[:session] || "default"))
+    png = WAHA.screenshot(session: params[:session] || "default")
+    unless png.is_a?(String)
+      render plain: "Unexpected response", status: :bad_gateway and return
+    end
+    data_uri = Base64.strict_encode64(png)
     @qr_src = "data:image/png;base64,#{data_uri}"
   rescue WahaClient::Error => e
     render plain: e.message, status: :bad_gateway

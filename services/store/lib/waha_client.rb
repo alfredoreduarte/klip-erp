@@ -12,7 +12,7 @@ class WahaClient
   end
 
   def send_text(phone_number:, text:, session: "default")
-    post("/sendText", {
+    post("/api/sendText", {
       chatId: "#{phone_number}@c.us",
       text: text,
       session: session
@@ -20,18 +20,11 @@ class WahaClient
   end
 
   def start_session(name: "default")
-    post("/sessions", { name: name })
+    post("/api/sessions", { name: name })
   end
 
   def screenshot(session: "default")
-    @conn.get("/screenshot", { session: session }).body
-  end
-
-  # Returns raw QR string (data used to generate QR)
-  def qr_data(session: "default")
-    res = @conn.get("/qr", { session: session })
-    raise Error, "QR not ready" unless res.success?
-    res.body[:qr] || res.body
+    @conn.get("/api/screenshot", { session: session }).body
   end
 
   private
