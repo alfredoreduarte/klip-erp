@@ -20,4 +20,12 @@ class WahaSessionsController < ApplicationController
   rescue WahaClient::Error => e
     render plain: e.message, status: :bad_gateway
   end
+
+  # GET /waha/qr.png?session=default
+  def qr_png
+    data = WAHA.screenshot(session: params[:session] || "default")
+    send_data data, type: "image/png", disposition: "inline"
+  rescue WahaClient::Error => e
+    render plain: e.message, status: :bad_gateway
+  end
 end

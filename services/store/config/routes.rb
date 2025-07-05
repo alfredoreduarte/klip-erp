@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
   post "/waha/sessions", to: "waha_sessions#create"
   get  "/waha/qr",      to: "waha_sessions#qr"
+  get  "/waha/qr.png",  to: "waha_sessions#qr_png"
 
   # Defines the root path route ("/")
   # root "posts#index"
