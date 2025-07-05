@@ -12,9 +12,17 @@ namespace :waha do
       puts "Warning: #{e.message} (continuing to fetch QR)"
     end
 
-    img_data = WAHA.screenshot(session: session)
-    file_path = Rails.root.join("waha_qr_#{session}.png")
-    File.binwrite(file_path, img_data)
-    puts "QR code saved to #{file_path}. Open this image and scan it with WhatsApp → Linked devices."
+    begin
+      qr_string = WAHA.qr_data(session: session)
+      qrcode = RQRCode::QRCode.new(qr_string)
+      puts qrcode.as_ansi(module_size: 1)
+      puts "Scan the above QR with WhatsApp → Linked devices."
+    rescue WahaClient::Error => e
+      puts "Could not fetch QR: #{e.message}. Falling back to screenshot..."
+      img_data = WAHA.screenshot(session: session)
+      file_path = Rails.root.join("waha_qr_#{session}.png")
+      File.binwrite(file_path, img_data)
+      puts "QR code saved to #{file_path}. Open this image and scan it."
+    end
   end
 end

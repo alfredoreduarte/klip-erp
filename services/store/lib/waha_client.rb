@@ -27,6 +27,13 @@ class WahaClient
     @conn.get("/screenshot", { session: session }).body
   end
 
+  # Returns raw QR string (data used to generate QR)
+  def qr_data(session: "default")
+    res = @conn.get("/qr", { session: session })
+    raise Error, "QR not ready" unless res.success?
+    res.body[:qr] || res.body
+  end
+
   private
 
   def post(path, payload)
