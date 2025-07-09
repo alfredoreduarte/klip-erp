@@ -62,11 +62,11 @@ class Order < ApplicationRecord
   end
   
   def fully_paid?
-    total_payments >= total_amount
+    total_amount.positive? && total_payments >= total_amount
   end
   
   def partially_paid?
-    total_payments > 0 && total_payments < total_amount
+    total_payments.positive? && !fully_paid?
   end
   
   def unpaid?
@@ -192,7 +192,9 @@ class Order < ApplicationRecord
   
   def calculate_totals
     self.subtotal = order_items.sum(:total_price)
-    self.cost_of_goods = order_items.sum { |item| item.total_cost || 0 }
+    computed_cogs = order_items.sum { |item| item.total_cost || 0 }
+    # Preserve manually-set cost_of_goods if present and non-zero
+    self.cost_of_goods = computed_cogs.zero? ? cost_of_goods : computed_cogs
     
     # Add gift wrap cost if applicable
     self.subtotal += gift_wrap_cost if gift_wrap?
