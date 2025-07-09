@@ -74,6 +74,12 @@ class ProductVariant < ApplicationRecord
       total_cost += cost_from_lot
       remaining_quantity -= quantity_from_lot
     end
+
+    # Fallback to cost_price when there are no lots or insufficient cost data
+    if total_cost.zero?
+      unit = cost_price || 0
+      total_cost = quantity * unit
+    end
     
     total_cost
   end
@@ -146,6 +152,8 @@ class ProductVariant < ApplicationRecord
   
   def update_inventory_from_lots
     return unless track_inventory?
+
+    return if inventory_lots.empty? # keep manual inventory_quantity on records without lots
     
     total_quantity = inventory_lots.where(status: 'active').sum(:quantity_remaining)
     self.inventory_quantity = total_quantity
