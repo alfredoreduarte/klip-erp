@@ -1,0 +1,26 @@
+{
+  "sessions": {
+    "default": {
+      "webhooks": [
+        {
+          "url": "http://store:3000/waha/webhooks",
+          "events": ["message", "message.ack", "state.change"],
+          "retries": 3
+        }
+      ]
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  },
+  "storage": {
+    "type": "memory"
+  },
+  "security": {
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:3000", "http://store:3000"]
+    }
+  }
+}
