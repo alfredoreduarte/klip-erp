@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_09_000200) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_09_000300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -35,6 +35,15 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000200) do
     t.datetime "updated_at", null: false
     t.index ["chat_id"], name: "index_messages_on_chat_id"
     t.index ["wa_message_id"], name: "index_messages_on_wa_message_id", unique: true
+  end
+
+  create_table "waha_events", force: :cascade do |t|
+    t.string "session_name", comment: "WAHA session name"
+    t.string "event_name", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_waha_events_on_created_at"
   end
 
   add_foreign_key "messages", "chats"

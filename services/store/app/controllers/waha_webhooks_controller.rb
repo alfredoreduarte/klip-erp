@@ -9,6 +9,9 @@ class WahaWebhooksController < ApplicationController
     event = params[:event]
     data  = params[:data] || params[:payload] || {}
 
+    # Persist a lightweight event record for ops dashboard
+    WahaEvent.create!(session_name: params[:session] || nil, event_name: event, payload: data)
+
     case event
     when "messages.upsert"
       handle_messages_upsert(data)

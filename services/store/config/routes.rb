@@ -20,6 +20,8 @@ Rails.application.routes.draw do
     resources :messages, only: :create
   end
 
+  resources :waha_events, only: :index
+
   # Defines the root path route ("/")
   # root "posts#index"
 end
