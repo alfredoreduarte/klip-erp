@@ -16,6 +16,10 @@ Rails.application.routes.draw do
 
   post "/waha/webhooks", to: "waha_webhooks#receive"
 
+  resources :chats, only: [:index, :show] do
+    resources :messages, only: :create
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end

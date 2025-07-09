@@ -64,4 +64,5 @@ Rails.application.configure do
 
   # Allow internal service calls during tests
   config.hosts << "store"
+  config.hosts << "www.example.com"
 end

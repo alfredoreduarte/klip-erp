@@ -1,0 +1,18 @@
+<h1 class="text-xl font-bold mb-4">Chats</h1>
+
+<ul class="space-y-2">
+  <% @chats.each do |chat| %>
+    <li>
+      <%= link_to chat_path(chat), class: "text-blue-600 hover:underline" do %>
+        <%= chat.name.presence || chat.wa_id %>
+        <% if chat.last_message_at.present? %>
+          <span class="text-xs text-gray-500 ml-2"><%= time_ago_in_words(chat.last_message_at) %> ago</span>
+        <% end %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
+
+<% if @chats.empty? %>
+  <p>No chats yet. Wait for WhatsApp traffic or send a message first.</p>
+<% end %>
