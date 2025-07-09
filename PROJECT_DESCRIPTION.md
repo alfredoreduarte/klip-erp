@@ -117,16 +117,16 @@ Use this document to track high-level progress across all modules. Checkboxes re
 - [x] Provide `.tool-versions` file and asdf tooling guidelines for Ruby, Node, Postgres, etc.
 
 ## 13. Domain Data Modeling
-- [ ] Product & Variant entities (SKU, barcode, attributes)
-- [ ] Packaging Material entity (units, cost)
-- [ ] Inventory Lots with FIFO cost tracking
-- [ ] Order entity with states & short-link token
-- [ ] Cart entity (draft orders via WhatsApp/UI)
-- [ ] Payment entity with multi-method split & ledger posting
-- [ ] Cash Register Session entity (open/close, cash-at-hand)
-- [ ] Shipping entity (courier, cost, tracking)
-- [ ] Sourcing Order entity with cost breakdown (fees, customs, shipping)
-- [ ] Marketing Campaign attribution entities (Meta Ads → order)
+- [x] Product & Variant entities (SKU, barcode, attributes)
+- [x] Packaging Material entity (units, cost)
+- [x] Inventory Lots with FIFO cost tracking
+- [x] Order entity with states & short-link token
+- [x] Cart entity (draft orders via WhatsApp/UI)
+- [x] Payment entity with multi-method split & ledger posting
+- [x] Cash Register Session entity (open/close, cash-at-hand)
+- [x] Shipping entity (courier, cost, tracking)
+- [x] Sourcing Order entity with cost breakdown (fees, customs, shipping)
+- [x] Marketing Campaign attribution entities (Meta Ads → order)
 
 ---
 
