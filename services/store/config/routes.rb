@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   # The `qr` action responds with either HTML or PNG depending on the requested
   # format, so a separate `qr_png` route is no longer necessary.
 
+  post "/waha/webhooks", to: "waha_webhooks#receive"
+
   # Defines the root path route ("/")
   # root "posts#index"
 end
