@@ -1,7 +1,7 @@
 class AddNotNullToJsonbColumns < ActiveRecord::Migration[7.2]
   def change
     jsonb_columns_with_hash_default = {
-      products: [:attributes, :metadata],
+      products: [:custom_attributes, :metadata],
       product_variants: [:option_values, :metadata],
       inventory_lots: [:cost_breakdown, :metadata],
       packaging_materials: [:metadata],

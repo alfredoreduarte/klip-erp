@@ -16,7 +16,7 @@ class CreateProducts < ActiveRecord::Migration[7.2]
       t.decimal :height, precision: 8, scale: 3
       t.string :dimension_unit, default: 'cm'
       t.string :tax_category
-      t.jsonb :attributes, default: {}
+      t.jsonb :custom_attributes, default: {}
       t.jsonb :metadata, default: {}
 
       t.timestamps
@@ -26,6 +26,6 @@ class CreateProducts < ActiveRecord::Migration[7.2]
     add_index :products, :category
     add_index :products, :brand
     add_index :products, :status
-    add_index :products, :attributes, using: :gin
+    add_index :products, :custom_attributes, using: :gin
   end
 end
