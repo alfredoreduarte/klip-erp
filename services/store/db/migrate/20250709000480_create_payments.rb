@@ -18,7 +18,7 @@ class CreatePayments < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :payments, :order_id
+    add_index :payments, :order_id, if_not_exists: true
     add_index :payments, :payment_method
     add_index :payments, :status
     add_index :payments, :reference_number

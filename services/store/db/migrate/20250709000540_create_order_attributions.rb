@@ -19,8 +19,8 @@ class CreateOrderAttributions < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :order_attributions, :order_id
-    add_index :order_attributions, :marketing_campaign_id
+    add_index :order_attributions, :order_id, if_not_exists: true
+    add_index :order_attributions, :marketing_campaign_id, if_not_exists: true
     add_index :order_attributions, :attribution_type
     add_index :order_attributions, :click_timestamp
     add_index :order_attributions, :conversion_timestamp

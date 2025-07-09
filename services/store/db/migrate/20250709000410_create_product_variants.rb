@@ -23,10 +23,10 @@ class CreateProductVariants < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :product_variants, :product_id
-    add_index :product_variants, :sku, unique: true
-    add_index :product_variants, :barcode, unique: true
-    add_index :product_variants, :active
-    add_index :product_variants, :option_values, using: :gin
+    add_index :product_variants, :product_id, if_not_exists: true
+    add_index :product_variants, :sku, unique: true, if_not_exists: true
+    add_index :product_variants, :barcode, unique: true, if_not_exists: true
+    add_index :product_variants, :active, if_not_exists: true
+    add_index :product_variants, :option_values, using: :gin, if_not_exists: true
   end
 end

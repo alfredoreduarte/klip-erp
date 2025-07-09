@@ -15,8 +15,8 @@ class CreateOrderItems < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :order_items, :order_id
-    add_index :order_items, :product_variant_id
-    add_index :order_items, :fulfillment_status
+    add_index :order_items, :order_id, if_not_exists: true
+    add_index :order_items, :product_variant_id, if_not_exists: true
+    add_index :order_items, :fulfillment_status, if_not_exists: true
   end
 end

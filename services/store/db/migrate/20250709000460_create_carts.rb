@@ -24,7 +24,7 @@ class CreateCarts < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :carts, :chat_id
+    add_index :carts, :chat_id, if_not_exists: true
     add_index :carts, :session_id
     add_index :carts, :customer_phone
     add_index :carts, :status

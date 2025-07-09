@@ -16,8 +16,8 @@ class CreateSourcingOrderItems < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :sourcing_order_items, :sourcing_order_id
-    add_index :sourcing_order_items, :product_variant_id
+    add_index :sourcing_order_items, :sourcing_order_id, if_not_exists: true
+    add_index :sourcing_order_items, :product_variant_id, if_not_exists: true
     add_index :sourcing_order_items, :status
     add_index :sourcing_order_items, :expected_date
     add_index :sourcing_order_items, :received_date

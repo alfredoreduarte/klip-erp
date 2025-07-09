@@ -23,7 +23,7 @@ class CreateShipments < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :shipments, :order_id
+    add_index :shipments, :order_id, if_not_exists: true
     add_index :shipments, :tracking_number, unique: true
     add_index :shipments, :carrier_name
     add_index :shipments, :status

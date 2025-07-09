@@ -20,7 +20,7 @@ class CreateInventoryLots < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :inventory_lots, :product_variant_id
+    add_index :inventory_lots, :product_variant_id, if_not_exists: true
     add_index :inventory_lots, :lot_number, unique: true
     add_index :inventory_lots, :received_date
     add_index :inventory_lots, :expiry_date
