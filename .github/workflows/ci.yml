@@ -1,86 +1,63 @@
-name: CI
+name: Rails CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - initial-setup
+      - feature/**
   pull_request:
-    branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:15
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: store_test
+          POSTGRES_DB: klip_erp_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    env:
+      RAILS_ENV: test
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: password
+      POSTGRES_DB: klip_erp_test
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up asdf
-        uses: asdf-vm/actions/setup@v2
-
-      - name: Cache asdf installs
-        uses: actions/cache@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          path: ~/.asdf
-          key: ${{ runner.os }}-asdf-${{ hashFiles('.tool-versions') }}
+          ruby-version: '3.3'
+          bundler-cache: true
 
-      - name: Install tools via asdf
-        run: asdf install
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
 
-      - name: Install bundler
-        run: gem install bundler --no-document
+      - name: Install JavaScript dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: services/store
 
-      - name: Install dependencies
+      - name: Copy CI database config
         run: |
-          cd services/store
-          bundle install --jobs 4 --retry 3
-          yarn install --cwd . || true
+          cp services/store/config/database.github.yml services/store/config/database.yml
 
-      - name: Prepare test DB
-        run: |
-          cd services/store
-          bin/rails db:prepare RAILS_ENV=test
-        env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/store_test
+      - name: Prepare database
+        run: bundle exec rails db:create db:schema:load --trace
+        working-directory: services/store
 
-      - name: Run tests
-        run: |
-          cd services/store
-          bundle exec rails test
-        env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/store_test
-
-      - name: Build Docker images
-        run: docker compose build
-        
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up SSH key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-      - name: Deploy to production
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          VERSION: ${{ github.sha }}
-        run: |
-          ./scripts/deploy-ssh.sh "$DEPLOY_HOST" "$DEPLOY_USER" "$VERSION"
+      - name: Run test suite
+        run: bundle exec rails test
+        working-directory: services/store
