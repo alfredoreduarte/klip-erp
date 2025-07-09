@@ -19,8 +19,14 @@ class WahaClient
     })
   end
 
+  # Starts (or creates if it does not yet exist) a WAHA session.
+  # According to WAHA API docs, the correct endpoint is
+  # POST /api/sessions/:name/start
+  # See error message returned by WAHA when calling /api/screenshot
+  #   "We didn't find a session with name 'default'. Please start it first by using POST /api/sessions/default/start request"
+  # We therefore call that endpoint directly and do not send any body payload.
   def start_session(name: "default")
-    post("/api/sessions", { name: name })
+    post("/api/sessions/#{name}/start", {})
   end
 
   def screenshot(session: "default")

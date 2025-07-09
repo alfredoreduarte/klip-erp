@@ -11,7 +11,8 @@ Rails.application.routes.draw do
 
   post "/waha/sessions", to: "waha_sessions#create"
   get  "/waha/qr",      to: "waha_sessions#qr"
-  get  "/waha/qr.png",  to: "waha_sessions#qr_png"
+  # The `qr` action responds with either HTML or PNG depending on the requested
+  # format, so a separate `qr_png` route is no longer necessary.
 
   # Defines the root path route ("/")
   # root "posts#index"

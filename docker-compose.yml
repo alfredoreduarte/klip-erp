@@ -64,6 +64,7 @@ services:
       - "traefik.http.services.store.loadbalancer.server.port=3000"
     ports:
       - "3000:3000"
+    command: /bin/sh -lc 'yarn build --watch & yarn build:css --watch & exec bin/rails server -b 0.0.0.0'
 
   waha:
     image: devlikeapro/waha:latest
