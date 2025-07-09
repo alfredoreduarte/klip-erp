@@ -116,6 +116,12 @@ class ProductVariant < ApplicationRecord
       
       remaining_quantity -= quantity_from_lot
     end
+
+    # If there were no lots (or not enough), manually deduct from inventory_quantity
+    if remaining_quantity.positive?
+      new_qty = inventory_quantity - remaining_quantity
+      self.inventory_quantity = new_qty.negative? ? 0 : new_qty
+    end
     
     update_inventory_from_lots
     save!
