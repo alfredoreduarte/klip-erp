@@ -26,6 +26,36 @@ class WahaClient
   #   "We didn't find a session with name 'default'. Please start it first by using POST /api/sessions/default/start request"
   # We therefore call that endpoint directly and do not send any body payload.
   def start_session(name: "default")
+    webhook_url = ENV.fetch("WAHA_WEBHOOK_URL", "http://store:3000/waha/webhooks")
+
+    # Ensure the session has our webhook configured. We try to create or update
+    # the session with the webhook configuration first, then start (or
+    # restart) it.
+    config_payload = {
+      name: name,
+      config: {
+        webhooks: [
+          {
+            url: webhook_url,
+            events: ["message"]
+          }
+        ]
+      }
+    }
+
+    begin
+      # Create session if it doesn't exist yet
+      post("/api/sessions", config_payload)
+    rescue Error => e
+      # If already exists, update it to make sure webhook is set
+      begin
+        put("/api/sessions/#{name}", config_payload)
+      rescue Error
+        # Swallow – we'll still attempt to (re)start below
+      end
+    end
+
+    # Finally start (or restart) the session so WAHA picks up the new config
     post("/api/sessions/#{name}/start", {})
   end
 
@@ -37,6 +67,15 @@ class WahaClient
 
   def post(path, payload)
     res = @conn.post(path, payload)
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  def put(path, payload)
+    res = @conn.put(path, payload)
     raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
 
     res.body

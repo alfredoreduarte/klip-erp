@@ -3,23 +3,19 @@ require "test_helper"
 class WahaWebhooksControllerTest < ActionDispatch::IntegrationTest
   setup do
     @payload = {
-      event: "messages.upsert",
-      data: {
-        messages: [
-          {
-            id: "ABCD1234",
-            chatId: "123456789@c.us",
-            fromMe: false,
-            type: "text",
-            text: { body: "Hola" },
-            timestamp: 1_720_000_000
-          }
-        ]
+      event: "message",
+      payload: {
+        id: "ABCD1234",
+        chatId: "123456789@c.us",
+        fromMe: false,
+        type: "text",
+        body: "Hola",
+        timestamp: 1_720_000_000
       }
     }.to_json
   end
 
-  test "creates chat and message for incoming messages.upsert" do
+  test "creates chat and message for incoming message event" do
     assert_difference "Chat.count", +1 do
       assert_difference "Message.count", +1 do
         post "/waha/webhooks", params: @payload, headers: { "Content-Type" => "application/json" }

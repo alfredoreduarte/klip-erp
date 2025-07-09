@@ -4,13 +4,17 @@ class WahaWebhooksController < ApplicationController
 
   # POST /waha/webhooks
   def receive
-    # WAHA sends { event: "...", data: { ... } }
+    # WAHA sends { event: "...", payload: { ... } }  (modern) or
+    # { event: "...", data: { ... } } (older/engine.event)
     event = params[:event]
-    data = params[:data] || {}
+    data  = params[:data] || params[:payload] || {}
 
     case event
     when "messages.upsert"
       handle_messages_upsert(data)
+      head :ok
+    when "message"
+      handle_single_message(data)
       head :ok
     else
       Rails.logger.info "Unhandled WAHA event: #{event}"
@@ -22,6 +26,28 @@ class WahaWebhooksController < ApplicationController
   end
 
   private
+
+  def handle_single_message(msg)
+    chat_id = msg["chatId"] || msg["chat_id"] || (msg["fromMe"] ? msg["to"] : msg["from"])
+    return if chat_id.blank?
+
+    chat = Chat.find_or_create_by!(wa_id: chat_id)
+
+    body_text = if msg["body"].present?
+                  msg["body"]
+                elsif msg.dig("text", "body").present?
+                  msg.dig("text", "body")
+                end
+
+    chat.messages.create!(
+      wa_message_id: msg["id"],
+      direction: msg["fromMe"] ? :outgoing : :incoming,
+      message_type: msg["type"] || "text",
+      body: body_text,
+      payload: msg,
+      sent_at: (Time.at(msg["timestamp"]).in_time_zone rescue nil)
+    )
+  end
 
   def handle_messages_upsert(data)
     Array(data["messages"]).each do |msg_payload|
