@@ -8,11 +8,13 @@ RUN apt-get update && apt-get install -y \
 
 # Copy custom configuration files
 COPY config/ /app/config/
+COPY tsconfig.json /app/
 COPY scripts/ /app/scripts/
 
 # Set proper permissions
 RUN chmod +x /app/scripts/*.sh || true
 RUN chown -R 1000:1000 /app/config /app/scripts
+RUN mkdir -p /app/.sessions && chown -R 1000:1000 /app/.sessions
 
 # Switch back to non-root user
 USER 1000
