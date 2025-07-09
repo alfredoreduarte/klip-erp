@@ -108,7 +108,7 @@ class Order < ApplicationRecord
       #{items_text}
       
       💰 Total: #{formatted_price(total_amount)}
-      📍 Status: #{status.humanize}
+      📍 Status: #{status}
       📱 Track: #{tracking_url}
       
       #{customer_notes.present? ? "📝 Notes: #{customer_notes}" : ""}
