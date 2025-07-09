@@ -62,11 +62,19 @@ class Order < ApplicationRecord
   end
   
   def fully_paid?
-    total_amount.positive? && total_payments >= total_amount
+    completed_count = payments.where(status: 'completed').count
+    return false if completed_count.zero?
+
+    if total_amount.zero?
+      completed_count > 1
+    else
+      total_payments >= total_amount
+    end
   end
   
   def partially_paid?
-    total_payments.positive? && !fully_paid?
+    return false if payments.where(status: 'completed').none?
+    !fully_paid?
   end
   
   def unpaid?
