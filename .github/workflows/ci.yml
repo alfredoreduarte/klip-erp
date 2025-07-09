@@ -56,7 +56,7 @@ jobs:
           cp services/store/config/database.github.yml services/store/config/database.yml
 
       - name: Prepare database
-        run: bundle exec rails db:create db:schema:load --trace
+        run: bundle exec rails db:prepare --trace
         working-directory: services/store
 
       - name: Run test suite
