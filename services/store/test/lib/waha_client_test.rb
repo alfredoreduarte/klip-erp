@@ -8,7 +8,7 @@ class WahaClientTest < ActiveSupport::TestCase
   end
 
   test "send_text posts correct payload" do
-    stub = stub_request(:post, "http://waha.test/sendText")
+    stub = stub_request(:post, "http://waha.test/api/sendText")
            .with(body: hash_including(text: "Hola"))
            .to_return(status: 200, body: { success: true }.to_json)
 
