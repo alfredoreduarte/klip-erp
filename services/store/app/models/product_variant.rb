@@ -112,6 +112,7 @@ class ProductVariant < ApplicationRecord
     end
     
     update_inventory_from_lots
+    save!
     true
   end
   
@@ -133,6 +134,7 @@ class ProductVariant < ApplicationRecord
     )
     
     update_inventory_from_lots
+    save!
     lot
   end
   
