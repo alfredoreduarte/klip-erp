@@ -1,6 +1,6 @@
 # Simple Makefile for local dev & deployment
 
-.PHONY: setup up down build test deploy
+.PHONY: setup up down build test deploy backup restore help
 
 setup:
 	asdf install
@@ -20,3 +20,23 @@ test:
 
 deploy:
 	./deploy.sh
+
+backup:
+	./scripts/backup/backup.sh
+
+restore:
+	@echo "Usage: make restore BACKUP_FILE=path/to/backup.sql.gz"
+	@if [ -z "$(BACKUP_FILE)" ]; then echo "Please specify BACKUP_FILE"; exit 1; fi
+	./scripts/backup/restore.sh $(BACKUP_FILE)
+
+help:
+	@echo "Available targets:"
+	@echo "  setup   - Install dependencies and set up the project"
+	@echo "  up      - Start all services with Docker Compose"
+	@echo "  down    - Stop all services"
+	@echo "  build   - Build Docker images"
+	@echo "  test    - Run the test suite"
+	@echo "  deploy  - Deploy using blue-green deployment"
+	@echo "  backup  - Create database backup"
+	@echo "  restore - Restore from backup (usage: make restore BACKUP_FILE=path/to/backup.sql.gz)"
+	@echo "  help    - Show this help message"

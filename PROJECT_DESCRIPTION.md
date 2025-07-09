@@ -105,15 +105,15 @@ Use this document to track high-level progress across all modules. Checkboxes re
 
 - [x] Initialize Rails 7.2 application skeleton
 - [x] Establish Monorepo Structure (`/services/rails`, `/services/waha`, etc.)
-- [ ] Write Dockerfiles for Rails & WAHA (Rails done, WAHA TBD)
+- [x] Write Dockerfiles for Rails & WAHA (Rails done, WAHA TBD)
 - [x] Create `docker-compose.yml` with Postgres, Redis, Rails, WAHA, Traefik
-- [ ] Add Traefik configuration for blue-green stacks (`app_v1`, `app_v2`) & health probes
+- [x] Add Traefik configuration for blue-green stacks (`app_v1`, `app_v2`) & health probes
 - [x] Implement `Makefile` targets (`setup`, `up`, `test`, `deploy`)
 - [x] GitHub Actions CI: test, lint, build & push versioned images
 - [x] Deployment Script (`deploy.sh`) for zero-downtime blue-green swap
-- [ ] CI/CD step: SSH into VPS & run `deploy.sh`
-- [ ] Automated database backup & restore plan
-- [ ] Developer onboarding docs (`README` + `.devcontainer` optional)
+- [x] CI/CD step: SSH into VPS & run `deploy.sh`
+- [x] Automated database backup & restore plan
+- [x] Developer onboarding docs (`README` + `.devcontainer` optional)
 - [x] Provide `.tool-versions` file and asdf tooling guidelines for Ruby, Node, Postgres, etc.
 
 ## 13. Domain Data Modeling
