@@ -1,21 +1,77 @@
 <%# frozen_string_literal: true %>
 <% active = defined?(@chat) && @chat.id == chat.id %>
-<%= link_to chat_path(chat), class: "group flex items-center px-4 py-3 hover:bg-[#f5f6f6] cursor-pointer #{'bg-[#e9edef]' if active}" do %>
-  <div class="flex-shrink-0">
+<%= link_to chat_path(chat), class: "chat-list-item #{'active' if active}" do %>
+  <div class="chat-avatar">
     <% initials = (chat.name.presence || chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
-    <div class="w-12 h-12 rounded-full bg-[#6b7c85] text-white flex items-center justify-center text-base font-medium">
-      <%= initials %>
-    </div>
+    <%= initials %>
   </div>
-  <div class="ml-4 flex-1 min-w-0">
-    <div class="flex justify-between items-start">
-      <p class="font-normal text-[#111b21] truncate"><%= chat.name.presence || chat.wa_id %></p>
-      <% if chat.last_message_at.present? %>
-        <p class="text-xs text-[#667781] whitespace-nowrap ml-2"><%= chat.last_message_at.strftime('%H:%M') %></p>
-      <% end %>
+  
+  <div class="chat-info">
+    <div class="chat-header">
+      <h3 class="chat-name"><%= chat.name.presence || chat.wa_id %></h3>
+      <div class="flex items-center">
+        <% if chat.last_message_at.present? %>
+          <span class="chat-time"><%= chat.last_message_at.strftime('%H:%M') %></span>
+        <% end %>
+        <% if chat.messages.where(outgoing: false, read_at: nil).exists? %>
+          <div class="chat-unread-badge">
+            <%= chat.messages.where(outgoing: false, read_at: nil).count %>
+          </div>
+        <% end %>
+      </div>
     </div>
-    <% if chat.messages.last&.body.present? %>
-      <p class="text-sm text-[#667781] truncate mt-0.5"><%= truncate(chat.messages.last.body.to_s, length: 50) %></p>
-    <% end %>
+    
+    <div class="flex items-center justify-between">
+      <div class="flex items-center flex-1 min-w-0">
+        <% last_message = chat.messages.last %>
+        <% if last_message&.body.present? %>
+          <% if last_message.outgoing? %>
+            <div class="flex items-center mr-1">
+              <!-- Status indicator for outgoing messages -->
+              <% 
+                age_minutes = (Time.current - last_message.created_at) / 1.minute
+                if age_minutes < 5
+                  status_class = "text-[#667781]"
+                elsif age_minutes < 30
+                  status_class = "text-[#667781]"
+                else
+                  status_class = "text-[#53bdeb]"
+                end
+              %>
+              <svg class="w-3 h-3 <%= status_class %>" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            </div>
+          <% end %>
+          <p class="chat-preview"><%= truncate(last_message.body.to_s, length: 50) %></p>
+        <% elsif last_message&.message_type == 'image' %>
+          <div class="flex items-center text-[#667781]">
+            <% if last_message.outgoing? %>
+              <svg class="w-3 h-3 mr-1 text-[#667781]" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+            </svg>
+            <span class="chat-preview">Photo</span>
+          </div>
+        <% elsif last_message&.message_type == 'video' %>
+          <div class="flex items-center text-[#667781]">
+            <% if last_message.outgoing? %>
+              <svg class="w-3 h-3 mr-1 text-[#667781]" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm2 0h12v10H4V5zm6 3a1 1 0 00-1.447.894l4 2A1 1 0 0014 10l-4-2z" clip-rule="evenodd"/>
+            </svg>
+            <span class="chat-preview">Video</span>
+          </div>
+        <% else %>
+          <p class="chat-preview text-[#8696a0]">No messages yet</p>
+        <% end %>
+      </div>
+    </div>
   </div>
 <% end %>

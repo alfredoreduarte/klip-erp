@@ -1,0 +1,50 @@
+<div id="typing-indicator" class="typing-indicator hidden">
+  <div class="flex items-center space-x-2">
+    <div class="w-8 h-8 rounded-full bg-[#6b7c85] text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
+      <% if defined?(@chat) && @chat.present? %>
+        <% initials = (@chat.name.presence || @chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
+        <%= initials %>
+      <% else %>
+        ?
+      <% end %>
+    </div>
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-[#667781]">typing</span>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mock typing indicator functionality
+  function showTypingIndicator() {
+    document.getElementById('typing-indicator').classList.remove('hidden');
+  }
+  
+  function hideTypingIndicator() {
+    document.getElementById('typing-indicator').classList.add('hidden');
+  }
+  
+  // Simulate typing indicator on focus/blur of message input
+  document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.querySelector('.composer-input');
+    if (messageInput) {
+      let typingTimeout;
+      
+      messageInput.addEventListener('input', function() {
+        // Show typing indicator when user starts typing
+        if (Math.random() > 0.7) { // 30% chance to show "other person typing"
+          showTypingIndicator();
+          
+          // Hide after 3 seconds
+          clearTimeout(typingTimeout);
+          typingTimeout = setTimeout(hideTypingIndicator, 3000);
+        }
+      });
+    }
+  });
+</script>

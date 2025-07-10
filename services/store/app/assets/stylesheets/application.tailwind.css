@@ -3,101 +3,303 @@
 @tailwind utilities;
 
 @layer components {
-  .chat-bg {
-    @apply bg-[#efeae2];
-    background-image: url('https://web.whatsapp.com/img/bg-chat-tile_9e87df39f66c99aa1f672e374f8205a8.png');
-    background-repeat: repeat;
-  }
+  /* WhatsApp-specific styles scoped to avoid affecting other parts of the app */
+  .whatsapp-chat-container {
+    /* Chat background */
+    .chat-bg {
+      @apply bg-[#efeae2];
+      background-image: url('https://web.whatsapp.com/img/bg-chat-tile_9e87df39f66c99aa1f672e374f8205a8.png');
+      background-repeat: repeat;
+    }
 
-  .bubble-base {
-    @apply relative max-w-md text-sm leading-relaxed;
-    border-radius: 7.5px;
-    padding: 6px 7px 8px 9px;
-    box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
-  }
+    /* Message bubble styles */
+    .bubble-base {
+      @apply relative max-w-md text-sm leading-relaxed;
+      border-radius: 7.5px;
+      padding: 6px 7px 8px 9px;
+      box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+    }
 
-  .bubble-incoming {
-    @apply bubble-base bg-white;
-    border-bottom-left-radius: 3px;
-    padding: 6px 7px 8px 9px;
-  }
+    .bubble-incoming {
+      @apply bubble-base bg-white;
+      border-bottom-left-radius: 3px;
+      padding: 6px 7px 8px 9px;
+    }
 
-  .bubble-outgoing {
-    @apply bubble-base bg-[#d9fdd3];
-    border-bottom-right-radius: 3px;
-    padding: 6px 7px 8px 9px;
-  }
+    .bubble-outgoing {
+      @apply bubble-base bg-[#d9fdd3];
+      border-bottom-right-radius: 3px;
+      padding: 6px 7px 8px 9px;
+    }
 
-  .bubble-tail {
-    @apply absolute bottom-0;
-  }
+    .bubble-tail {
+      @apply absolute bottom-0;
+    }
 
-  .bubble-tail-incoming {
-    left: -8px;
-  }
+    .bubble-tail-incoming {
+      left: -8px;
+    }
 
-  .bubble-tail-outgoing {
-    right: -8px;
-  }
+    .bubble-tail-outgoing {
+      right: -8px;
+    }
 
-  .bubble-timestamp {
-    @apply text-[11px] text-[#667781] whitespace-nowrap select-none;
-    opacity: 0.6;
-    font-weight: 400;
-  }
+    .bubble-timestamp {
+      @apply text-[11px] text-[#667781] whitespace-nowrap select-none;
+      opacity: 0.6;
+      font-weight: 400;
+    }
 
-  .bubble-content {
-    word-wrap: break-word;
-    line-height: 1.4;
-    margin-bottom: 2px;
-    font-size: 14.2px;
-  }
+    .bubble-content {
+      word-wrap: break-word;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      font-size: 14.2px;
+    }
 
-  .message-status {
-    @apply inline-flex items-center;
-    margin-left: 4px;
-  }
+    .message-status {
+      @apply inline-flex items-center;
+      margin-left: 4px;
+    }
 
-  .message-status-single {
-    @apply w-[16px] h-[15px] text-[#667781];
-    opacity: 0.6;
-  }
+    .message-status-single {
+      @apply w-[16px] h-[15px] text-[#667781];
+      opacity: 0.6;
+    }
 
-  .message-status-double {
-    @apply w-[16px] h-[15px] text-[#667781];
-    opacity: 0.6;
-  }
+    .message-status-double {
+      @apply w-[16px] h-[15px] text-[#667781];
+      opacity: 0.6;
+    }
 
-  .message-status-read {
-    @apply w-[16px] h-[15px] text-[#53bdeb];
-  }
+    .message-status-read {
+      @apply w-[16px] h-[15px] text-[#53bdeb];
+    }
 
-  .message-time-status {
-    @apply flex items-center justify-end;
-    margin-top: 1px;
-    min-height: 15px;
-    gap: 0;
-  }
+    .message-time-status {
+      @apply flex items-center justify-end;
+      margin-top: 1px;
+      min-height: 15px;
+      gap: 0;
+    }
 
-  .media-message .message-time-status {
-    position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background: rgba(11, 20, 26, 0.8);
-    border-radius: 12px;
-    padding: 2px 6px;
-    margin: 0;
-    backdrop-filter: blur(10px);
-  }
+    .media-message .message-time-status {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(11, 20, 26, 0.8);
+      border-radius: 12px;
+      padding: 2px 6px;
+      margin: 0;
+      backdrop-filter: blur(10px);
+    }
 
-  .media-message .bubble-timestamp {
-    color: rgba(241, 241, 242, 0.92);
-    opacity: 1;
-    font-size: 11px;
-  }
+    .media-message .bubble-timestamp {
+      color: rgba(241, 241, 242, 0.92);
+      opacity: 1;
+      font-size: 11px;
+    }
 
-  .media-message .message-status svg {
-    filter: brightness(0) invert(1);
-    opacity: 0.92;
+    .media-message .message-status svg {
+      filter: brightness(0) invert(1);
+      opacity: 0.92;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      @apply flex items-center space-x-1 px-3 py-2 text-[#667781] text-sm;
+    }
+
+    .typing-dots {
+      @apply flex space-x-1;
+    }
+
+    .typing-dot {
+      @apply w-2 h-2 bg-[#667781] rounded-full;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes typing {
+      0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Session sidebar styles */
+    .session-sidebar {
+      @apply w-16 bg-[#202c33] text-white flex flex-col items-center py-2 justify-between;
+    }
+
+    .session-item {
+      @apply group flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer;
+      background: #2a3942;
+      border: 2px solid transparent;
+    }
+
+    .session-item:hover {
+      background: #3b4a54;
+      transform: scale(1.05);
+    }
+
+    .session-item.active {
+      background: #00a884;
+      border-color: #00d9ff;
+      box-shadow: 0 0 10px rgba(0, 168, 132, 0.3);
+    }
+
+    .session-item-text {
+      @apply text-sm font-semibold uppercase text-white;
+    }
+
+    .create-session-btn {
+      @apply flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer;
+      background: #00a884;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .create-session-btn:hover {
+      background: #00d9ff;
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(0, 168, 132, 0.4);
+    }
+
+    /* Chat list improvements */
+    .chat-list-item {
+      @apply group flex items-center px-4 py-3 cursor-pointer transition-all duration-150;
+      border-bottom: 1px solid rgba(233, 237, 239, 0.5);
+    }
+
+    .chat-list-item:hover {
+      background: #f5f6f6;
+    }
+
+    .chat-list-item.active {
+      background: #e9edef;
+      border-left: 4px solid #00a884;
+    }
+
+    .chat-avatar {
+      @apply w-12 h-12 rounded-full text-white flex items-center justify-center text-base font-medium flex-shrink-0;
+      background: linear-gradient(135deg, #667781, #8696a0);
+    }
+
+    .chat-info {
+      @apply ml-4 flex-1 min-w-0;
+    }
+
+    .chat-header {
+      @apply flex justify-between items-start mb-1;
+    }
+
+    .chat-name {
+      @apply font-normal text-[#111b21] truncate;
+      font-size: 16px;
+    }
+
+    .chat-time {
+      @apply text-xs text-[#667781] whitespace-nowrap ml-2;
+    }
+
+    .chat-preview {
+      @apply text-sm text-[#667781] truncate;
+      line-height: 1.3;
+    }
+
+    .chat-unread-badge {
+      @apply bg-[#00a884] text-white text-xs rounded-full px-2 py-1 font-medium ml-2;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* Header improvements */
+    .whatsapp-header {
+      @apply h-16 flex items-center px-4 border-b border-[#e9edef] bg-[#f0f2f5];
+    }
+
+    .whatsapp-header-avatar {
+      @apply w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-medium flex-shrink-0 mr-3;
+      background: linear-gradient(135deg, #667781, #8696a0);
+    }
+
+    .whatsapp-header-info {
+      @apply flex-1 min-w-0;
+    }
+
+    .whatsapp-header-name {
+      @apply font-medium text-[#111b21] truncate;
+      font-size: 16px;
+    }
+
+    .whatsapp-header-status {
+      @apply text-xs text-[#667781];
+    }
+
+    .whatsapp-header-actions {
+      @apply flex space-x-2;
+    }
+
+    .whatsapp-action-btn {
+      @apply p-2 text-[#54656f] hover:bg-[#e9edef] rounded-full transition-colors;
+    }
+
+    /* Message composer improvements */
+    .message-composer {
+      @apply border-t border-[#e9edef] p-4 bg-[#f0f2f5];
+    }
+
+    .composer-form {
+      @apply flex items-center space-x-3;
+    }
+
+    .composer-attachment-btn {
+      @apply p-2 text-[#54656f] hover:bg-[#e9edef] rounded-full transition-colors;
+    }
+
+    .composer-input-wrapper {
+      @apply flex-1 relative;
+    }
+
+    .composer-input {
+      @apply w-full text-sm px-4 py-3 rounded-2xl bg-white border-none focus:outline-none resize-none;
+      font-size: 14px;
+      line-height: 1.4;
+      max-height: 120px;
+    }
+
+    .composer-send-btn {
+      @apply p-2 bg-[#00a884] text-white rounded-full hover:bg-[#008f72] transition-colors;
+    }
+
+    /* Search box improvements */
+    .search-container {
+      @apply px-3 py-2 bg-white;
+    }
+
+    .search-wrapper {
+      @apply relative;
+    }
+
+    .search-icon {
+      @apply absolute inset-y-0 left-3 flex items-center text-[#54656f];
+    }
+
+    .search-input {
+      @apply w-full text-sm pl-10 pr-3 py-2 rounded-lg bg-[#f0f2f5] focus:outline-none focus:bg-white transition-colors;
+    }
   }
 }

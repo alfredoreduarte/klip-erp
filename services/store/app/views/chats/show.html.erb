@@ -1,114 +1,133 @@
-<div class="flex h-screen bg-gray-50">
-  <!-- Left-most vertical sidebar for WAHA sessions & other sections -->
-  <aside class="w-16 bg-gray-900 text-white flex flex-col items-center py-2 justify-between">
-    <div class="space-y-4 w-full">
-      <% @sessions.each do |session| %>
-        <% active_session = defined?(@waha_session) && @waha_session&.id == session.id %>
-        <%= link_to waha_session_chats_path(session), class: "group flex items-center justify-center w-full h-12 transition #{active_session ? 'bg-gray-700' : 'hover:bg-gray-800'}" do %>
-          <span class="text-sm font-semibold uppercase"><%= session.name.first(2) %></span>
+<div class="whatsapp-chat-container">
+  <div class="flex h-screen bg-gray-50">
+    <!-- Left-most vertical sidebar for WAHA sessions & other sections -->
+    <aside class="session-sidebar">
+      <div class="space-y-3 w-full px-2">
+        <% @sessions.each do |session| %>
+          <% active_session = defined?(@waha_session) && @waha_session&.id == session.id %>
+          <%= link_to waha_session_chats_path(session), class: "session-item #{'active' if active_session}" do %>
+            <span class="session-item-text"><%= session.name.first(2) %></span>
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
-    <%= link_to "+", waha_sessions_path, class: "flex items-center justify-center w-full h-10 text-lg font-bold hover:bg-gray-800" %>
-  </aside>
+      </div>
+      
+      <div class="px-2">
+        <button onclick="openNewSessionModal()" class="create-session-btn" title="Create New Session">
+          +
+        </button>
+      </div>
+    </aside>
 
-  <!-- Middle column – chat list -->
-  <section class="w-[370px] bg-white border-r border-gray-300 flex flex-col">
-    <!-- Header -->
-    <div class="h-16 flex items-center px-4 border-b border-[#e9edef] bg-[#f0f2f5]">
-      <div class="flex items-center justify-between w-full">
-        <h1 class="text-xl font-medium text-[#111b21]">Chats</h1>
-        <div class="flex space-x-2">
-          <!-- Mock icons for new chat, menu etc -->
-          <button class="p-2 text-[#54656f] hover:bg-[#e9edef] rounded-full">
+    <!-- Middle column – chat list -->
+    <section class="w-[370px] bg-white border-r border-gray-300 flex flex-col">
+      <!-- Header -->
+      <div class="whatsapp-header">
+        <div class="flex items-center justify-between w-full">
+          <h1 class="text-xl font-medium text-[#111b21]">Chats</h1>
+          <div class="whatsapp-header-actions">
+            <button class="whatsapp-action-btn" title="New chat">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
+              </svg>
+            </button>
+            <button class="whatsapp-action-btn" title="Menu">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search box -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <span class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+            </svg>
+          </span>
+          <input type="text" placeholder="Search or start new chat" class="search-input" disabled>
+        </div>
+      </div>
+
+      <!-- Chat list -->
+      <div class="overflow-y-auto flex-1">
+        <%= render partial: "chats/chat_list_item", collection: @chats, as: :chat %>
+      </div>
+    </section>
+
+    <!-- Right column – active chat -->
+    <section class="flex-1 flex flex-col chat-bg">
+      <!-- Chat header -->
+      <div class="whatsapp-header">
+        <div class="flex items-center flex-1">
+          <div class="whatsapp-header-avatar">
+            <% initials = (@chat.name.presence || @chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
+            <%= initials %>
+          </div>
+          <div class="whatsapp-header-info">
+            <h2 class="whatsapp-header-name"><%= @chat.name.presence || @chat.wa_id %></h2>
+            <p class="whatsapp-header-status">last seen recently</p>
+          </div>
+        </div>
+        <div class="whatsapp-header-actions">
+          <button class="whatsapp-action-btn" title="Search">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <button class="whatsapp-action-btn" title="Attach">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <button class="whatsapp-action-btn" title="Menu">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
             </svg>
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Search box (mock) -->
-    <div class="px-3 py-2 bg-white">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-3 flex items-center text-[#54656f]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
-          </svg>
-        </span>
-        <input type="text" placeholder="Search or start new chat" class="w-full text-sm pl-10 pr-3 py-2 rounded-lg bg-[#f0f2f5] focus:outline-none focus:bg-white" disabled>
-      </div>
-    </div>
+      <!-- Messages scroller -->
+      <turbo-frame id="chat_<%= @chat.id %>_messages" class="flex-1 overflow-y-auto p-6" target="_top">
+        <div id="messages_scroller" class="space-y-2">
+          <%= render partial: "messages/message", collection: @messages, as: :message %>
+          
+          <!-- Typing indicator -->
+          <%= render partial: "chats/typing_indicator" %>
+        </div>
+      </turbo-frame>
 
-    <!-- Chat list -->
-    <div class="overflow-y-auto flex-1 divide-y divide-gray-100">
-      <%= render partial: "chats/chat_list_item", collection: @chats, as: :chat %>
-    </div>
-  </section>
-
-  <!-- Right column – active chat -->
-  <section class="flex-1 flex flex-col chat-bg">
-    <!-- Chat header -->
-    <div class="h-16 flex items-center px-4 border-b border-[#e9edef] bg-[#f0f2f5]">
-      <div class="flex items-center flex-1">
-        <div class="flex-shrink-0 mr-3">
-          <% initials = (@chat.name.presence || @chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
-          <div class="w-10 h-10 rounded-full bg-[#6b7c85] text-white flex items-center justify-center text-sm font-medium">
-            <%= initials %>
+      <!-- Message composer -->
+      <div class="message-composer">
+        <%= form_with model: [@chat, Message.new], data: { turbo_stream: true }, class: "composer-form" do |f| %>
+          <!-- Attachment button -->
+          <button type="button" class="composer-attachment-btn" title="Attach file">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          
+          <!-- Message input -->
+          <div class="composer-input-wrapper">
+            <%= f.text_field :body, class: "composer-input", placeholder: "Type a message", rows: 1 %>
           </div>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h2 class="font-medium text-[#111b21] truncate"><%= @chat.name.presence || @chat.wa_id %></h2>
-          <p class="text-xs text-[#667781]">last seen recently</p>
-        </div>
-      </div>
-      <div class="flex space-x-2">
-        <!-- Mock action buttons -->
-        <button class="p-2 text-[#54656f] hover:bg-[#e9edef] rounded-full">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-          </svg>
-        </button>
-        <button class="p-2 text-[#54656f] hover:bg-[#e9edef] rounded-full">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Messages scroller -->
-    <turbo-frame id="chat_<%= @chat.id %>_messages" class="flex-1 overflow-y-auto p-6" target="_top">
-      <div id="messages_scroller" class="space-y-2">
-        <%= render partial: "messages/message", collection: @messages, as: :message %>
-      </div>
-    </turbo-frame>
-
-    <!-- Message composer -->
-    <div class="border-t border-[#e9edef] p-4 bg-[#f0f2f5]">
-      <%= form_with model: [@chat, Message.new], data: { turbo_stream: true }, class: "flex items-center space-x-2" do |f| %>
-        <!-- Attachment button -->
-        <button type="button" class="p-2 text-[#54656f] hover:bg-[#e9edef] rounded-full">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
-          </svg>
-        </button>
-        
-        <!-- Message input -->
-        <div class="flex-1 relative">
-          <%= f.text_field :body, class: "w-full text-sm px-4 py-3 rounded-lg bg-white border-none focus:outline-none resize-none", placeholder: "Type a message", rows: 1 %>
-        </div>
-        
-        <!-- Send button -->
-        <%= f.submit class: "p-2 bg-[#00a884] text-white rounded-full hover:bg-[#008f72] transition-colors" do %>
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-          </svg>
+          
+          <!-- Send button -->
+          <%= f.submit class: "composer-send-btn" do %>
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+            </svg>
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+
+  <!-- New Session Modal -->
+  <%= render partial: "chats/new_session_modal" %>
 </div>
 
 <%= auto_scroll_frame %>
