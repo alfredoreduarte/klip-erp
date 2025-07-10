@@ -1,17 +1,62 @@
-<h1 class="text-xl font-bold mb-4">Chat <%= @chat.wa_id %></h1>
-<p class="mb-2"><%= link_to "← All chats", chats_path, class: "text-blue-600 hover:underline" %></p>
+<div class="flex h-screen bg-gray-50">
+  <!-- Left-most vertical sidebar for WAHA sessions & other sections -->
+  <aside class="w-16 bg-gray-900 text-white flex flex-col items-center py-2 justify-between">
+    <div class="space-y-4 w-full">
+      <% @sessions.each do |session| %>
+        <% active_session = defined?(@waha_session) && @waha_session&.id == session.id %>
+        <%= link_to waha_session_chats_path(session), class: "group flex items-center justify-center w-full h-12 transition #{active_session ? 'bg-gray-700' : 'hover:bg-gray-800'}" do %>
+          <span class="text-sm font-semibold uppercase"><%= session.name.first(2) %></span>
+        <% end %>
+      <% end %>
+    </div>
+    <%= link_to "+", waha_sessions_path, class: "flex items-center justify-center w-full h-10 text-lg font-bold hover:bg-gray-800" %>
+  </aside>
 
-<turbo-frame id="chat_<%= @chat.id %>_messages">
-  <div id="messages_scroller" class="h-80 overflow-y-auto border rounded p-2">
-    <%= render partial: "messages/message", collection: @messages, as: :message %>
-  </div>
-</turbo-frame>
+  <!-- Middle column – chat list -->
+  <section class="w-80 bg-white border-r border-gray-200 flex flex-col">
+    <!-- Header -->
+    <div class="h-14 flex items-center px-4 border-b border-gray-200">
+      <p class="font-semibold">Chats</p>
+    </div>
 
-<%= form_with model: [@chat, Message.new], data: { turbo_stream: true } do |f| %>
-  <div class="flex space-x-2 mt-2">
-    <%= f.text_field :body, class: "flex-1 border rounded p-2", placeholder: "Type a message" %>
-    <%= f.submit "Send", class: "bg-blue-600 text-white px-4 py-2 rounded" %>
-  </div>
-<% end %>
+    <!-- Search box (mock) -->
+    <div class="px-3 py-2 border-b border-gray-200">
+      <input type="text" placeholder="Search…" class="w-full text-sm px-3 py-2 rounded-lg bg-gray-100 focus:outline-none" disabled>
+    </div>
+
+    <!-- Chat list -->
+    <div class="overflow-y-auto flex-1">
+      <%= render partial: "chats/chat_list_item", collection: @chats, as: :chat %>
+    </div>
+  </section>
+
+  <!-- Right column – active chat -->
+  <section class="flex-1 flex flex-col bg-gray-100">
+    <!-- Chat header -->
+    <div class="h-14 flex items-center px-4 border-b border-gray-300 bg-gray-50">
+      <div class="flex-1">
+        <p class="font-medium"><%= @chat.name.presence || @chat.wa_id %></p>
+      </div>
+      <!-- Typing indicator mock -->
+      <div id="typing_indicator" class="text-sm text-gray-500 hidden md:block">Typing…</div>
+    </div>
+
+    <!-- Messages scroller -->
+    <turbo-frame id="chat_<%= @chat.id %>_messages" class="flex-1 overflow-y-auto p-4" target="_top">
+      <div id="messages_scroller" class="space-y-2">
+        <%= render partial: "messages/message", collection: @messages, as: :message %>
+      </div>
+    </turbo-frame>
+
+    <!-- Message composer -->
+    <div class="border-t border-gray-300 p-3 bg-gray-50">
+      <%= form_with model: [@chat, Message.new], data: { turbo_stream: true }, class: "flex items-center space-x-2" do |f| %>
+        <input type="file" disabled class="hidden">
+        <%= f.text_field :body, class: "flex-1 text-sm px-4 py-2 rounded-full border border-gray-300 focus:outline-none", placeholder: "Type a message" %>
+        <%= f.submit "Send", class: "bg-green-600 text-white rounded-full px-4 py-2 text-sm" %>
+      <% end %>
+    </div>
+  </section>
+</div>
 
 <%= auto_scroll_frame %>

@@ -1,11 +1,40 @@
-<div id="message_<%= message.id %>" class="flex items-start space-x-2 mb-2">
-  <% if message.outgoing? %>
-    <div class="ml-auto bg-green-100 text-green-900 px-3 py-2 rounded-lg max-w-xs">
+<div id="message_<%= message.id %>" class="flex items-start space-x-2 mb-2 <%= 'ml-auto flex-row-reverse space-x-reverse' if message.outgoing? %>">
+  <% bubble_classes = "px-3 py-2 rounded-lg max-w-md shadow #{message.outgoing? ? 'bg-[#DCF8C6]' : 'bg-white'}" %>
+  <div class="<%= bubble_classes %>">
+    <%# Render different content based on message type %>
+    <% case message.message_type %>
+    <% when 'text' %>
+      <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
+    <% when 'image' %>
+      <% url = message.payload['url'] || message.payload['media_url'] %>
+      <%= link_to url, target: '_blank' do %>
+        <%= image_tag url, class: 'rounded-lg max-w-full h-auto' %>
+      <% end %>
+      <% if message.body.present? %>
+        <p class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></p>
+      <% end %>
+    <% when 'video' %>
+      <% url = message.payload['url'] || message.payload['media_url'] %>
+      <%= video_tag url, controls: true, class: 'rounded-lg max-w-full h-60' if url.present? %>
+      <% if message.body.present? %>
+        <p class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></p>
+      <% end %>
+    <% when 'location' %>
+      <% loc = message.payload['location'] || {} %>
+      <% lat = loc['latitude'] || loc['lat'] %>
+      <% lng = loc['longitude'] || loc['lng'] %>
+      <% maps_link = "https://maps.google.com/?q=#{lat},#{lng}" %>
+      <%= link_to maps_link, target: '_blank', class: 'text-blue-600 underline' do %>
+        📍 Location (<%= lat %>, <%= lng %>)
+      <% end %>
+    <% when 'contact' %>
+      <% contact = message.payload['contact'] || message.payload['contacts']&.first || {} %>
+      <div class="p-2 border rounded text-sm">
+        <p class="font-semibold"><%= contact['name'] || 'Contact' %></p>
+        <p><%= contact['phone'] || contact['wa_id'] %></p>
+      </div>
+    <% else %>
       <%= message.body.presence || "[#{message.message_type}]" %>
-    </div>
-  <% else %>
-    <div class="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg max-w-xs">
-      <%= message.body.presence || "[#{message.message_type}]" %>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 </div>
