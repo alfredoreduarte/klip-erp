@@ -10,42 +10,60 @@
   }
 
   .bubble-base {
-    @apply relative px-3 py-2 max-w-md shadow text-sm leading-relaxed;
+    @apply relative px-3 py-1.5 max-w-md shadow-sm text-sm leading-relaxed;
+    border-radius: 8px;
   }
 
   .bubble-incoming {
-    @apply bubble-base bg-white rounded-lg rounded-bl-md;
+    @apply bubble-base bg-white;
+    border-bottom-left-radius: 3px;
   }
   .bubble-incoming::after {
     content: "";
     position: absolute;
-    left: -8px;
+    left: -7px;
     bottom: 0;
     width: 0;
     height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid white;
-    border-bottom: 8px solid white;
-    border-top: 8px solid transparent;
+    border-left: 7px solid transparent;
+    border-right: 7px solid white;
+    border-bottom: 13px solid white;
+    border-top: 0px solid transparent;
+    transform: skewX(-10deg);
   }
 
   .bubble-outgoing {
-    @apply bubble-base bg-[#DCF8C6] rounded-lg rounded-br-md;
+    @apply bubble-base bg-[#d9fdd3];
+    border-bottom-right-radius: 3px;
   }
   .bubble-outgoing::after {
     content: "";
     position: absolute;
-    right: -8px;
+    right: -7px;
     bottom: 0;
     width: 0;
     height: 0;
-    border-left: 8px solid #DCF8C6;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid #DCF8C6;
-    border-top: 8px solid transparent;
+    border-left: 7px solid #d9fdd3;
+    border-right: 7px solid transparent;
+    border-bottom: 13px solid #d9fdd3;
+    border-top: 0px solid transparent;
+    transform: skewX(10deg);
   }
 
   .bubble-timestamp {
-    @apply text-[11px] text-gray-500 ml-2 whitespace-nowrap select-none;
+    @apply text-[11px] text-[#667781] ml-1 whitespace-nowrap select-none opacity-70;
+    margin-top: 2px;
+  }
+
+  .bubble-content {
+    @apply mb-1;
+  }
+
+  .message-status {
+    @apply inline-flex items-center ml-1;
+  }
+
+  .message-status svg {
+    @apply w-4 h-4 text-[#53bdeb];
   }
 }
