@@ -7,7 +7,7 @@ class WahaSessionsControllerTest < ActionDispatch::IntegrationTest
     base = "http://localhost:4000"
     stub_request(:post, "#{base}/api/sessions").to_return(status: 200, body: {}.to_json)
     stub_request(:put, /#{base}\/api\/sessions\/.+/).to_return(status: 200, body: {}.to_json)
-    stub_request(:post, /#{base}\/api\/sessions\/.+\/start/).to_return(status: 200, body: {}.to_json)
+    stub_request(:post, /#{base}\/api\/sessions\/.+\/restart/).to_return(status: 200, body: {}.to_json)
   end
 
   test "creates a new session and redirects" do
@@ -26,10 +26,10 @@ class WahaSessionsControllerTest < ActionDispatch::IntegrationTest
     # Existing session persisted in Rails DB (simulating it was paired before)
     WahaSession.create!(name: "sales1", status: :connected)
 
-    # Stub WAHA endpoints to simulate that the session does NOT exist anymore
-    # WAHA will accept POST /api/sessions to create it, then allow start.
+    # Stub WAHA endpoint to simulate that the session does NOT exist anymore.
+    # WAHA will accept POST /api/sessions with start: true to recreate + autostart.
     stub_request(:post, "#{base}/api/sessions").to_return(status: 200, body: {}.to_json)
-    stub_request(:post, "#{base}/api/sessions/sales1/start").to_return(status: 200, body: {}.to_json)
+    # No /restart call is expected when the session is freshly created.
 
     assert_no_difference "WahaSession.count" do
       post "/waha/sessions", params: { name: "sales1" }
@@ -41,7 +41,7 @@ class WahaSessionsControllerTest < ActionDispatch::IntegrationTest
 
     # Ensure WAHA session was (re)created and started
     assert_requested :post, "#{base}/api/sessions", times: 1
-    assert_requested :post, "#{base}/api/sessions/sales1/start", times: 1
+    assert_not_requested :post, "#{base}/api/sessions/sales1/restart"
   end
 
   test "deletes session locally and on WAHA" do
