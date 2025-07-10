@@ -1,5 +1,16 @@
 <div id="message_<%= message.id %>" class="flex items-end space-x-2 mb-2 <%= 'ml-auto flex-row-reverse space-x-reverse' if message.outgoing? %>">
-  <div class="<%= message.outgoing? ? 'bubble-outgoing' : 'bubble-incoming' %>">
+  <div class="<%= message.outgoing? ? 'bubble-outgoing' : 'bubble-incoming' %> relative">
+    <!-- SVG Tail -->
+    <% if message.outgoing? %>
+      <svg class="bubble-tail bubble-tail-outgoing" width="8" height="13" viewBox="0 0 8 13">
+        <path d="M1.533 0.004C1.543 0.004 1.553 0.004 1.563 0.004C1.953 0.004 2.343 0.164 2.623 0.484C3.263 1.204 4.003 2.124 4.503 3.044C5.003 3.964 5.263 4.884 5.263 5.504C5.263 6.124 5.003 7.044 4.503 7.964C4.003 8.884 3.263 9.804 2.623 10.524C2.343 10.844 1.953 11.004 1.563 11.004C1.553 11.004 1.543 11.004 1.533 11.004C1.143 11.004 0.753 10.844 0.473 10.524C0.163 10.184 0.003 9.724 0.003 9.244L0.003 1.764C0.003 1.284 0.163 0.824 0.473 0.484C0.753 0.164 1.143 0.004 1.533 0.004Z" fill="#d9fdd3"/>
+      </svg>
+    <% else %>
+      <svg class="bubble-tail bubble-tail-incoming" width="8" height="13" viewBox="0 0 8 13">
+        <path d="M6.467 0.004C6.457 0.004 6.447 0.004 6.437 0.004C6.047 0.004 5.657 0.164 5.377 0.484C4.737 1.204 3.997 2.124 3.497 3.044C2.997 3.964 2.737 4.884 2.737 5.504C2.737 6.124 2.997 7.044 3.497 7.964C3.997 8.884 4.737 9.804 5.377 10.524C5.657 10.844 6.047 11.004 6.437 11.004C6.447 11.004 6.457 11.004 6.467 11.004C6.857 11.004 7.247 10.844 7.527 10.524C7.837 10.184 7.997 9.724 7.997 9.244L7.997 1.764C7.997 1.284 7.837 0.824 7.527 0.484C7.247 0.164 6.857 0.004 6.467 0.004Z" fill="white"/>
+      </svg>
+    <% end %>
+
     <%# Render different content based on message type %>
     <% case message.message_type %>
     <% when 'text' %>
@@ -10,15 +21,33 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <!-- Status based on message state - for now showing double check as delivered -->
-            <% if message.created_at > 1.hour.ago %>
-              <!-- Recent message - show as read (blue double check) -->
-              <svg class="message-status-read" viewBox="0 0 16 15">
+            <% 
+              # Message status logic based on age (mock implementation)
+              # In real WhatsApp: sent -> delivered -> read
+              age_minutes = (Time.current - message.created_at) / 1.minute
+              if age_minutes < 5
+                status = :single  # Just sent
+              elsif age_minutes < 30
+                status = :double  # Delivered
+              else
+                status = :read    # Read (blue)
+              end
+            %>
+            
+            <% case status %>
+            <% when :single %>
+              <!-- Single check mark - sent -->
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+              <!-- Double check mark - delivered (gray) -->
+              <svg class="message-status-double" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
-            <% else %>
-              <!-- Older message - show as delivered (gray double check) -->
-              <svg class="message-status-double" viewBox="0 0 16 15">
+            <% when :read %>
+              <!-- Double check mark - read (blue) -->
+              <svg class="message-status-read" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
             <% end %>
@@ -39,12 +68,21 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% if message.created_at > 1.hour.ago %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
+            <% 
+              age_minutes = (Time.current - message.created_at) / 1.minute
+              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+            %>
+            <% case status %>
+            <% when :single %>
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
-            <% else %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
+            <% when :read %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
             <% end %>
@@ -63,12 +101,21 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% if message.created_at > 1.hour.ago %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
+            <% 
+              age_minutes = (Time.current - message.created_at) / 1.minute
+              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+            %>
+            <% case status %>
+            <% when :single %>
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
-            <% else %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
+            <% when :read %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
             <% end %>
@@ -89,12 +136,21 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% if message.created_at > 1.hour.ago %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
+            <% 
+              age_minutes = (Time.current - message.created_at) / 1.minute
+              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+            %>
+            <% case status %>
+            <% when :single %>
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
-            <% else %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
+            <% when :read %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
             <% end %>
@@ -113,12 +169,21 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% if message.created_at > 1.hour.ago %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
+            <% 
+              age_minutes = (Time.current - message.created_at) / 1.minute
+              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+            %>
+            <% case status %>
+            <% when :single %>
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
-            <% else %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
+            <% when :read %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
             <% end %>
@@ -133,12 +198,21 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% if message.created_at > 1.hour.ago %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
+            <% 
+              age_minutes = (Time.current - message.created_at) / 1.minute
+              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+            %>
+            <% case status %>
+            <% when :single %>
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
-            <% else %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
+            <% when :read %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
                 <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
               </svg>
             <% end %>
