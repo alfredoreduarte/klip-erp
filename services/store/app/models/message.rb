@@ -1,7 +1,7 @@
 class Message < ApplicationRecord
   belongs_to :chat, touch: true
 
-  enum direction: { incoming: 0, outgoing: 1 }
+  enum :direction, { incoming: 0, outgoing: 1 }
 
   validates :wa_message_id, presence: true, uniqueness: true
   validates :message_type, presence: true

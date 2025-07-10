@@ -9,8 +9,8 @@ class WahaSessionTest < ActiveSupport::TestCase
 
   test "enum statuses present" do
     session = WahaSession.create!(name: "abc", status: :pending_qr)
-    assert session.status_pending_qr?
+    assert session.pending_qr?
     session.connected!
-    assert session.status_connected?
+    assert session.connected?
   end
 end
