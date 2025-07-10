@@ -5,7 +5,18 @@ class MessagesController < ApplicationController
 
     # Send via WAHA
     phone_number = @chat.wa_id.split("@").first
-    WAHA.send_text(phone_number: phone_number, text: text)
+    session_name = @chat.waha_session&.name || "default"
+    begin
+      WAHA.send_text(phone_number: phone_number, text: text, session: session_name)
+    rescue WahaClient::Error => e
+      if e.message.include?("We didn't find a session")
+        # Auto-heal: (re)start session and retry once
+        WAHA.start_session(name: session_name)
+        WAHA.send_text(phone_number: phone_number, text: text, session: session_name)
+      else
+        raise
+      end
+    end
 
     # Persist outgoing message
     message = @chat.messages.create!(

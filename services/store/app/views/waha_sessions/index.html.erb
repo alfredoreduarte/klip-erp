@@ -1,0 +1,30 @@
+<h1 class="text-xl font-semibold mb-4">WhatsApp Sessions</h1>
+
+<%= form_with url: "/waha/sessions", method: :post, local: true, class: "mb-6 flex gap-2" do |f| %>
+  <%= f.text_field :name, placeholder: "Session name", class: "border rounded px-2 py-1" %>
+  <%= f.submit "Start Session", class: "bg-green-600 text-white px-3 py-1 rounded" %>
+<% end %>
+
+<table class="min-w-full text-sm">
+  <thead>
+    <tr>
+      <th class="text-left">Name</th>
+      <th class="text-left">Status</th>
+      <th class="text-left">Last QR</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @sessions.each do |session| %>
+      <tr class="border-t">
+        <td class="py-1"><%= session.name %></td>
+        <td><%= session.status_label %></td>
+        <td><%= session.last_qr_generated_at&.strftime("%Y-%m-%d %H:%M") %></td>
+        <td class="space-x-2">
+          <%= link_to "QR", waha_qr_path(session: session.name), class: "underline text-blue-600" %>
+          <%= button_to "Restart", "/waha/sessions", method: :post, params: { name: session.name }, class: "underline text-blue-600", form: { data: { turbo_confirm: "Restart session?" } } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

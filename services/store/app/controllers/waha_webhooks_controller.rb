@@ -34,7 +34,14 @@ class WahaWebhooksController < ApplicationController
     chat_id = msg["chatId"] || msg["chat_id"] || (msg["fromMe"] ? msg["to"] : msg["from"])
     return if chat_id.blank?
 
+    # Associate chat with session
+    session_name = params[:session].presence
+    waha_session = session_name.present? ? WahaSession.find_or_create_by!(name: session_name) : nil
+
     chat = Chat.find_or_create_by!(wa_id: chat_id)
+    if waha_session && chat.waha_session_id.nil?
+      chat.update(waha_session: waha_session)
+    end
 
     body_text = if msg["body"].present?
                   msg["body"]
@@ -57,7 +64,14 @@ class WahaWebhooksController < ApplicationController
       chat_id = msg_payload["chatId"] || msg_payload["chat_id"]
       next unless chat_id.present?
 
+      # Find or create session if provided
+      session_name = params[:session].presence
+      waha_session = session_name.present? ? WahaSession.find_or_create_by!(name: session_name) : nil
+
       chat = Chat.find_or_create_by!(wa_id: chat_id)
+      if waha_session && chat.waha_session_id.nil?
+        chat.update(waha_session: waha_session)
+      end
 
       # Determine direction based on `fromMe` flag
       direction = msg_payload["fromMe"] ? :outgoing : :incoming

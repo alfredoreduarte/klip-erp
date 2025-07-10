@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_09_000550) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -95,7 +95,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000550) do
     t.datetime "last_message_at", comment: "Timestamp of last message processed"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "waha_session_id"
     t.index ["wa_id"], name: "index_chats_on_wa_id", unique: true
+    t.index ["waha_session_id"], name: "index_chats_on_waha_session_id"
   end
 
   create_table "inventory_lots", force: :cascade do |t|
@@ -453,9 +455,21 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000550) do
     t.index ["created_at"], name: "index_waha_events_on_created_at"
   end
 
+  create_table "waha_sessions", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "status", default: "inactive", null: false
+    t.datetime "last_qr_generated_at"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_waha_sessions_on_name", unique: true
+    t.index ["status"], name: "index_waha_sessions_on_status"
+  end
+
   add_foreign_key "cart_items", "carts"
   add_foreign_key "cart_items", "product_variants"
   add_foreign_key "carts", "chats"
+  add_foreign_key "chats", "waha_sessions"
   add_foreign_key "inventory_lots", "product_variants"
   add_foreign_key "messages", "chats"
   add_foreign_key "order_attributions", "marketing_campaigns"

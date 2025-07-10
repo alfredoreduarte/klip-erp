@@ -3,39 +3,62 @@ require "base64"
 class WahaSessionsController < ApplicationController
   protect_from_forgery with: :null_session
 
+  # GET /waha/sessions
+  def index
+    @sessions = WahaSession.order(:name)
+  end
+
   # POST /waha/sessions
   # { "name": "default" }
   def create
     name = params[:name] || "default"
+
+    # Persist or find session locally first
+    waha_session = WahaSession.find_or_initialize_by(name: name)
+    waha_session.status = :pending_qr
+    waha_session.save!
+
+    # Start session on WAHA (creates if missing)
     result = WAHA.start_session(name: name)
-    render json: result
+
+    respond_to do |format|
+      format.json { render json: result }
+      format.html { redirect_to waha_sessions_path, notice: "Session '#{name}' started. Scan the QR code to connect." }
+    end
   rescue WahaClient::Error => e
-    render json: { error: e.message }, status: :unprocessable_entity
+    waha_session.update(status: :error) if waha_session&.persisted?
+    respond_to do |format|
+      format.json { render json: { error: e.message }, status: :unprocessable_entity }
+      format.html { redirect_to waha_sessions_path, alert: e.message }
+    end
   end
 
   # GET /waha/qr?session=default
   def qr
-    data = WAHA.screenshot(session: params[:session] || "default")
+    session_name = params[:session] || "default"
+    data = WAHA.screenshot(session: session_name)
 
-    # If the client explicitly asks for a PNG (e.g. /waha/qr.png or
-    # /waha/qr?format=png) we stream the binary directly.  Rails will route
-    # "/waha/qr.png" here with `format` param set to "png", so we rely on the
-    # request's format instead of a separate `qr_png` action.
+    WahaSession.where(name: session_name).update_all(last_qr_generated_at: Time.current)
+
     if request.format.png?
       send_data data, type: "image/png", disposition: "inline"
       return
     end
 
-    # Otherwise render an HTML page embedding the base64-encoded screenshot so
-    # that it refreshes automatically via Turbo / HTMX or a normal browser
-    # refresh.
     unless data.is_a?(String)
       render plain: "Unexpected response", status: :bad_gateway and return
     end
 
     data_uri = Base64.strict_encode64(data)
     @qr_src = "data:image/png;base64,#{data_uri}"
+    @session_name = session_name
   rescue WahaClient::Error => e
     render plain: e.message, status: :bad_gateway
+  end
+
+  private
+
+  def waha_session_params
+    params.require(:waha_session).permit(:name)
   end
 end

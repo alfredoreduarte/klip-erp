@@ -1,6 +1,6 @@
 # Simple Makefile for local dev & deployment
 
-.PHONY: setup up down build test deploy backup restore help
+.PHONY: setup up down build test deploy backup restore help migrate
 
 setup:
 	asdf install
@@ -29,6 +29,9 @@ restore:
 	@if [ -z "$(BACKUP_FILE)" ]; then echo "Please specify BACKUP_FILE"; exit 1; fi
 	./scripts/backup/restore.sh $(BACKUP_FILE)
 
+migrate:
+	docker compose exec store bin/rails db:migrate
+
 help:
 	@echo "Available targets:"
 	@echo "  setup   - Install dependencies and set up the project"
@@ -39,4 +42,5 @@ help:
 	@echo "  deploy  - Deploy using blue-green deployment"
 	@echo "  backup  - Create database backup"
 	@echo "  restore - Restore from backup (usage: make restore BACKUP_FILE=path/to/backup.sql.gz)"
+	@echo "  migrate - Run database migrations inside the store container"
 	@echo "  help    - Show this help message"
