@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .chat-bg {
+    @apply bg-[#efeae2];
+    background-image: url('https://web.whatsapp.com/img/bg-chat-tile_9e87df39f66c99aa1f672e374f8205a8.png');
+    background-repeat: repeat;
+  }
+
+  .bubble-base {
+    @apply relative px-3 py-2 max-w-md shadow text-sm leading-relaxed;
+  }
+
+  .bubble-incoming {
+    @apply bubble-base bg-white rounded-lg rounded-bl-md;
+  }
+  .bubble-incoming::after {
+    content: "";
+    position: absolute;
+    left: -6px;
+    bottom: 0;
+    width: 12px;
+    height: 20px;
+    background: white;
+    border-bottom-right-radius: 10px;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+
+  .bubble-outgoing {
+    @apply bubble-base bg-[#DCF8C6] rounded-lg rounded-br-md;
+  }
+  .bubble-outgoing::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    bottom: 0;
+    width: 12px;
+    height: 20px;
+    background: #DCF8C6;
+    border-bottom-left-radius: 10px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+  }
+
+  .bubble-timestamp {
+    @apply text-[11px] text-gray-500 ml-2 whitespace-nowrap select-none;
+  }
+}
