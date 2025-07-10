@@ -22,6 +22,7 @@
         <td><%= session.last_qr_generated_at&.strftime("%Y-%m-%d %H:%M") %></td>
         <td class="space-x-2">
           <%= link_to "QR", waha_qr_path(session: session.name), class: "underline text-blue-600" %>
+          <%= link_to "Chats", waha_session_chats_path(session), class: "underline text-blue-600" %>
           <%= button_to "Restart", "/waha/sessions", method: :post, params: { name: session.name }, class: "underline text-blue-600", form: { data: { turbo_confirm: "Restart session?" } } %>
         </td>
       </tr>

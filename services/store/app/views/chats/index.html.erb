@@ -1,4 +1,10 @@
-<h1 class="text-xl font-bold mb-4">Chats</h1>
+<h1 class="text-xl font-bold mb-4">
+  Chats
+  <% if defined?(@waha_session) && @waha_session.present? %>
+    for session <span class="font-semibold"><%= @waha_session.name %></span>
+    (<%= link_to "Back to sessions", waha_sessions_path, class: "text-blue-600 underline" %>)
+  <% end %>
+</h1>
 
 <ul class="space-y-2">
   <% @chats.each do |chat| %>

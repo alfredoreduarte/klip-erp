@@ -23,6 +23,9 @@ Rails.application.routes.draw do
 
   resources :waha_events, only: :index
 
+  # Link chats filtered by session
+  get "/waha/sessions/:waha_session_id/chats", to: "chats#index", as: :waha_session_chats
+
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "home#index"
 end
