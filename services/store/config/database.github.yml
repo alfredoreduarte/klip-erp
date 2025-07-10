@@ -1,0 +1,15 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: <%= ENV.fetch('PGHOST', 'localhost') %>
+  username: <%= ENV.fetch('PGUSER', 'postgres') %>
+  password: <%= ENV.fetch('PGPASSWORD', '') %>
+  pool: <%= ENV.fetch('RAILS_MAX_THREADS') { 5 } %>
+
+# CI uses only the test environment
+# The database name comes from POSTGRES_DB env variable in the workflow
+# (see .github/workflows/ci.yml)
+
+test:
+  <<: *default
+  database: <%= ENV.fetch('POSTGRES_DB', 'klip_erp_test') %>

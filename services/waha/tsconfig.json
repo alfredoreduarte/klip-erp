@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    /* Module system used by NestJS at runtime */
+    "module": "commonjs",
+    /* Modern enough for WAHA while still compatible with Node 18 (base image) */
+    "target": "ES2020",
+    /* Emit helper functions in compiled output */
+    "importHelpers": true,
+    /* Enable strictest type-checking options */
+    "strict": true,
+    /* Resolve modules as in Node */
+    "moduleResolution": "node",
+    /* Allow JavaScript files in case some WAHA code mixes TS/JS */
+    "allowJs": true,
+    /* Exclude test and build artefacts */
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

@@ -1,0 +1,7 @@
+<li id="event_<%= event.id %>">
+  <span class="text-gray-500"><%= event.pretty_time %></span>
+  <span class="font-semibold"><%= event.event_name %></span>
+  <% if event.session_name.present? %>
+    <span class="text-gray-400">[<%= event.session_name %>]</span>
+  <% end %>
+</li>

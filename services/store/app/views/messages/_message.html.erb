@@ -1,0 +1,11 @@
+<div id="message_<%= message.id %>" class="flex items-start space-x-2 mb-2">
+  <% if message.outgoing? %>
+    <div class="ml-auto bg-green-100 text-green-900 px-3 py-2 rounded-lg max-w-xs">
+      <%= message.body.presence || "[#{message.message_type}]" %>
+    </div>
+  <% else %>
+    <div class="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg max-w-xs">
+      <%= message.body.presence || "[#{message.message_type}]" %>
+    </div>
+  <% end %>
+</div>

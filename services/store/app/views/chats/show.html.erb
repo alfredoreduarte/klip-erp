@@ -1,0 +1,17 @@
+<h1 class="text-xl font-bold mb-4">Chat <%= @chat.wa_id %></h1>
+<p class="mb-2"><%= link_to "← All chats", chats_path, class: "text-blue-600 hover:underline" %></p>
+
+<turbo-frame id="chat_<%= @chat.id %>_messages">
+  <div id="messages_scroller" class="h-80 overflow-y-auto border rounded p-2">
+    <%= render partial: "messages/message", collection: @messages, as: :message %>
+  </div>
+</turbo-frame>
+
+<%= form_with model: [@chat, Message.new], data: { turbo_stream: true } do |f| %>
+  <div class="flex space-x-2 mt-2">
+    <%= f.text_field :body, class: "flex-1 border rounded p-2", placeholder: "Type a message" %>
+    <%= f.submit "Send", class: "bg-blue-600 text-white px-4 py-2 rounded" %>
+  </div>
+<% end %>
+
+<%= auto_scroll_frame %>

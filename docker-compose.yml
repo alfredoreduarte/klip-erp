@@ -1,0 +1,93 @@
+version: "3.9"
+
+networks:
+  traefik:
+    driver: bridge
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  waha_sessions:
+
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - traefik
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: store_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - internal
+
+  store:
+    build:
+      context: ./services/store
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:password@postgres:5432/store_dev
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY_BASE: dummy_key
+      WAHA_BASE_URL: http://waha:3000
+    volumes:
+      - ./services/store:/rails
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.store.rule=Host(`localhost`)"
+      - "traefik.http.services.store.loadbalancer.server.port=3000"
+    ports:
+      - "3000:3000"
+    command: /bin/sh -lc 'yarn build --watch & yarn build:css --watch & exec bin/rails server -b 0.0.0.0'
+
+  waha:
+    build:
+      context: ./services/waha
+    platform: linux/amd64
+    environment:
+      WAHA_SESSION_NAME: default
+      WAHA_WEBHOOK_URL: http://store:3000/waha/webhooks
+    ports:
+      - "4000:3000"
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.waha.rule=Host(`waha.localhost`)"
+      - "traefik.http.services.waha.loadbalancer.server.port=3000"
+    volumes:
+      - ./services/waha/config:/app/config:ro
+      - waha_sessions:/app/sessions
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

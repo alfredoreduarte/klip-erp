@@ -1,0 +1,146 @@
+version: "3.9"
+
+networks:
+  traefik:
+    external: true
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.constraints=Label(`klip.active`, `1`)"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-store_production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backup:/backup:ro
+    networks:
+      - internal
+    labels:
+      - "klip.service=postgres"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    labels:
+      - "klip.service=redis"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  store:
+    build:
+      context: ./services/store
+      args:
+        IMAGE_TAG: ${IMAGE_TAG:-latest}
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-store_production}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      WAHA_BASE_URL: http://waha:3000
+      WAHA_WEBHOOK_URL: http://store:3000/waha/webhooks
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "klip.service=store"
+      - "klip.active=0"
+      - "traefik.enable=true"
+      - "traefik.http.routers.store.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.store.tls.certresolver=letsencrypt"
+      - "traefik.http.services.store.loadbalancer.server.port=3000"
+      - "traefik.http.services.store.loadbalancer.healthcheck.path=/up"
+      - "traefik.http.services.store.loadbalancer.healthcheck.interval=10s"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  waha:
+    build:
+      context: ./services/waha
+      args:
+        IMAGE_TAG: ${IMAGE_TAG:-latest}
+    environment:
+      WAHA_SESSION_NAME: ${WAHA_SESSION_NAME:-default}
+      WAHA_WEBHOOK_URL: http://store:3000/waha/webhooks
+    depends_on:
+      store:
+        condition: service_healthy
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "klip.service=waha"
+      - "klip.active=0"
+      - "traefik.enable=true"
+      - "traefik.http.routers.waha.rule=Host(`waha.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.waha.tls.certresolver=letsencrypt"
+      - "traefik.http.services.waha.loadbalancer.server.port=3000"
+      - "traefik.http.services.waha.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.services.waha.loadbalancer.healthcheck.interval=10s"
+    volumes:
+      - ./services/waha/config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
