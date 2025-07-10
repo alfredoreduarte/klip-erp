@@ -3,37 +3,63 @@
     <%# Render different content based on message type %>
     <% case message.message_type %>
     <% when 'text' %>
-      <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
+      <div class="flex items-end">
+        <span class="flex-1"><%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+      </div>
     <% when 'image' %>
       <% url = message.payload['url'] || message.payload['media_url'] %>
       <%= link_to url, target: '_blank' do %>
         <%= image_tag url, class: 'rounded-lg max-w-full h-auto' %>
       <% end %>
       <% if message.body.present? %>
-        <p class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></p>
+        <div class="flex items-end mt-1">
+          <span class="flex-1 text-sm"><%= auto_link(message.body.to_s) %></span>
+          <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        </div>
+      <% else %>
+        <div class="flex justify-end mt-1">
+          <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        </div>
       <% end %>
     <% when 'video' %>
       <% url = message.payload['url'] || message.payload['media_url'] %>
       <%= video_tag url, controls: true, class: 'rounded-lg max-w-full h-60' if url.present? %>
       <% if message.body.present? %>
-        <p class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></p>
+        <div class="flex items-end mt-1">
+          <span class="flex-1 text-sm"><%= auto_link(message.body.to_s) %></span>
+          <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        </div>
+      <% else %>
+        <div class="flex justify-end mt-1">
+          <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        </div>
       <% end %>
     <% when 'location' %>
       <% loc = message.payload['location'] || {} %>
       <% lat = loc['latitude'] || loc['lat'] %>
       <% lng = loc['longitude'] || loc['lng'] %>
       <% maps_link = "https://maps.google.com/?q=#{lat},#{lng}" %>
-      <%= link_to maps_link, target: '_blank', class: 'text-blue-600 underline' do %>
-        📍 Location (<%= lat %>, <%= lng %>)
-      <% end %>
+      <div class="flex items-end">
+        <%= link_to maps_link, target: '_blank', class: 'flex-1 text-blue-600 underline' do %>
+          📍 Location (<%= lat %>, <%= lng %>)
+        <% end %>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+      </div>
     <% when 'contact' %>
       <% contact = message.payload['contact'] || message.payload['contacts']&.first || {} %>
       <div class="p-2 border rounded text-sm">
         <p class="font-semibold"><%= contact['name'] || 'Contact' %></p>
         <p><%= contact['phone'] || contact['wa_id'] %></p>
       </div>
+      <div class="flex justify-end mt-1">
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+      </div>
     <% else %>
-      <%= message.body.presence || "[#{message.message_type}]" %>
+      <div class="flex items-end">
+        <span class="flex-1"><%= message.body.presence || "[#{message.message_type}]" %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+      </div>
     <% end %>
   </div>
 </div>
