@@ -1,5 +1,6 @@
 <div id="message_<%= message.id %>" class="flex items-start space-x-2 mb-2 <%= 'ml-auto flex-row-reverse space-x-reverse' if message.outgoing? %>">
   <% bubble_classes = "px-3 py-2 rounded-lg max-w-md shadow #{message.outgoing? ? 'bg-[#DCF8C6]' : 'bg-white'}" %>
+  <% bubble_classes << (message.outgoing? ? ' rounded-br-none' : ' rounded-bl-none') %>
   <div class="<%= bubble_classes %>">
     <%# Render different content based on message type %>
     <% case message.message_type %>

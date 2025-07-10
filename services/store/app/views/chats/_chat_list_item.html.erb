@@ -1,13 +1,13 @@
 <%# frozen_string_literal: true %>
 <% active = defined?(@chat) && @chat.id == chat.id %>
-<%= link_to chat_path(chat), class: "flex items-center px-4 py-3 hover:bg-gray-100 #{'bg-gray-200' if active}" do %>
+<%= link_to chat_path(chat), class: "group flex items-center px-4 py-3 hover:bg-gray-100 #{'bg-gray-200' if active}" do %>
   <div class="flex-shrink-0">
     <% initials = (chat.name.presence || chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
-    <div class="w-10 h-10 rounded-full bg-gray-400 text-white flex items-center justify-center text-sm font-semibold">
+    <div class="w-12 h-12 rounded-full bg-gray-400 text-white flex items-center justify-center text-base font-semibold">
       <%= initials %>
     </div>
   </div>
-  <div class="ml-3 flex-1 min-w-0">
+  <div class="ml-4 flex-1 min-w-0">
     <div class="flex justify-between items-center">
       <p class="font-medium truncate"><%= chat.name.presence || chat.wa_id %></p>
       <% if chat.last_message_at.present? %>
@@ -15,7 +15,7 @@
       <% end %>
     </div>
     <% if chat.messages.last&.body.present? %>
-      <p class="text-xs text-gray-500 truncate"><%= truncate(chat.messages.last.body.to_s, length: 40) %></p>
+      <p class="text-xs text-gray-500 truncate group-hover:text-gray-700"><%= truncate(chat.messages.last.body.to_s, length: 40) %></p>
     <% end %>
   </div>
 <% end %>
