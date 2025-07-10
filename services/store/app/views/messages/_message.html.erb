@@ -6,14 +6,22 @@
       <div class="bubble-content">
         <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
       </div>
-      <div class="flex items-center justify-end">
+      <div class="message-time-status">
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <!-- Double check mark for sent/delivered -->
-            <svg viewBox="0 0 16 15" width="16" height="15">
-              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-            </svg>
+            <!-- Status based on message state - for now showing double check as delivered -->
+            <% if message.created_at > 1.hour.ago %>
+              <!-- Recent message - show as read (blue double check) -->
+              <svg class="message-status-read" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% else %>
+              <!-- Older message - show as delivered (gray double check) -->
+              <svg class="message-status-double" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
           </span>
         <% end %>
       </div>
@@ -21,37 +29,49 @@
       <div class="bubble-content">
         <% url = message.payload['url'] || message.payload['media_url'] %>
         <%= link_to url, target: '_blank' do %>
-          <%= image_tag url, class: 'rounded-lg max-w-full h-auto' %>
+          <%= image_tag url, class: 'rounded max-w-full h-auto block' %>
         <% end %>
         <% if message.body.present? %>
-          <div class="mt-2 text-sm"><%= auto_link(message.body.to_s) %></div>
+          <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
         <% end %>
       </div>
-      <div class="flex items-center justify-end">
+      <div class="message-time-status">
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <svg viewBox="0 0 16 15" width="16" height="15">
-              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-            </svg>
+            <% if message.created_at > 1.hour.ago %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% else %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
           </span>
         <% end %>
       </div>
     <% when 'video' %>
       <div class="bubble-content">
         <% url = message.payload['url'] || message.payload['media_url'] %>
-        <%= video_tag url, controls: true, class: 'rounded-lg max-w-full h-60' if url.present? %>
+        <%= video_tag url, controls: true, class: 'rounded max-w-full h-60 block' if url.present? %>
         <% if message.body.present? %>
-          <div class="mt-2 text-sm"><%= auto_link(message.body.to_s) %></div>
+          <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
         <% end %>
       </div>
-      <div class="flex items-center justify-end">
+      <div class="message-time-status">
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <svg viewBox="0 0 16 15" width="16" height="15">
-              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-            </svg>
+            <% if message.created_at > 1.hour.ago %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% else %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
           </span>
         <% end %>
       </div>
@@ -65,31 +85,43 @@
           📍 Location (<%= lat %>, <%= lng %>)
         <% end %>
       </div>
-      <div class="flex items-center justify-end">
+      <div class="message-time-status">
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <svg viewBox="0 0 16 15" width="16" height="15">
-              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-            </svg>
+            <% if message.created_at > 1.hour.ago %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% else %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
           </span>
         <% end %>
       </div>
     <% when 'contact' %>
       <div class="bubble-content">
         <% contact = message.payload['contact'] || message.payload['contacts']&.first || {} %>
-        <div class="p-2 border rounded text-sm">
+        <div class="p-2 border rounded text-sm bg-gray-50">
           <p class="font-semibold"><%= contact['name'] || 'Contact' %></p>
           <p><%= contact['phone'] || contact['wa_id'] %></p>
         </div>
       </div>
-      <div class="flex items-center justify-end">
+      <div class="message-time-status">
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <svg viewBox="0 0 16 15" width="16" height="15">
-              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-            </svg>
+            <% if message.created_at > 1.hour.ago %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% else %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
           </span>
         <% end %>
       </div>
@@ -97,13 +129,19 @@
       <div class="bubble-content">
         <%= message.body.presence || "[#{message.message_type}]" %>
       </div>
-      <div class="flex items-center justify-end">
+      <div class="message-time-status">
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <svg viewBox="0 0 16 15" width="16" height="15">
-              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-            </svg>
+            <% if message.created_at > 1.hour.ago %>
+              <svg class="message-status-read" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% else %>
+              <svg class="message-status-double" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
           </span>
         <% end %>
       </div>
