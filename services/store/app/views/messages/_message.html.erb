@@ -2,12 +2,12 @@
   <div class="<%= message.outgoing? ? 'bubble-outgoing' : 'bubble-incoming' %> relative">
     <!-- SVG Tail -->
     <% if message.outgoing? %>
-      <svg class="bubble-tail bubble-tail-outgoing" width="9" height="20" viewBox="0 0 9 20">
-        <path d="M0,20 L0,0 Q0,0 8,0 Q9,0 9,1 Q9,10 8,18 Q7,20 0,20" fill="#d9fdd3"/>
+      <svg class="bubble-tail bubble-tail-outgoing" width="8" height="13" viewBox="0 0 8 13">
+        <path d="M1.533 0H0v11c0 1.105.896 2 2 2h6c-2.667-1.333-5.333-5.333-6.467-13z" fill="#d9fdd3"/>
       </svg>
     <% else %>
-      <svg class="bubble-tail bubble-tail-incoming" width="9" height="20" viewBox="0 0 9 20">
-        <path d="M9,20 L9,0 Q9,0 1,0 Q0,0 0,1 Q0,10 1,18 Q2,20 9,20" fill="white"/>
+      <svg class="bubble-tail bubble-tail-incoming" width="8" height="13" viewBox="0 0 8 13">
+        <path d="M6.467 0H8v11c0 1.105-.896 2-2 2H0c2.667-1.333 5.333-5.333 6.467-13z" fill="white"/>
       </svg>
     <% end %>
 
@@ -18,12 +18,11 @@
         <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status" style="margin-left: 0;">
+          <span class="message-status">
             <% 
               # Message status logic based on age (mock implementation)
-              # In real WhatsApp: sent -> delivered -> read
               age_minutes = (Time.current - message.created_at) / 1.minute
               if age_minutes < 5
                 status = :single  # Just sent
@@ -54,6 +53,7 @@
           </span>
         <% end %>
       </div>
+
     <% when 'image' %>
       <div class="bubble-content media-message relative">
         <% url = message.payload['url'] || message.payload['media_url'] %>
@@ -61,34 +61,35 @@
           <%= image_tag url, class: 'rounded max-w-full h-auto block' %>
         <% end %>
         <div class="message-time-status">
-          <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
+          <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
           <% if message.outgoing? %>
-          <span class="message-status" style="margin-left: 0;">
-            <% 
-              age_minutes = (Time.current - message.created_at) / 1.minute
-              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
-            %>
-            <% case status %>
-            <% when :single %>
-              <svg class="message-status-single" viewBox="0 0 16 15">
-                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-              </svg>
-            <% when :double %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
-                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-              </svg>
-            <% when :read %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
-                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-              </svg>
-            <% end %>
-          </span>
+            <span class="message-status">
+              <% 
+                age_minutes = (Time.current - message.created_at) / 1.minute
+                status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+              %>
+              <% case status %>
+              <% when :single %>
+                <svg class="message-status-single" viewBox="0 0 16 15">
+                  <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+                </svg>
+              <% when :double %>
+                <svg class="message-status-double" viewBox="0 0 16 15">
+                  <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+                </svg>
+              <% when :read %>
+                <svg class="message-status-read" viewBox="0 0 16 15">
+                  <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+                </svg>
+              <% end %>
+            </span>
           <% end %>
         </div>
         <% if message.body.present? %>
           <div class="mt-1 text-sm px-2 pb-2"><%= auto_link(message.body.to_s) %></div>
         <% end %>
       </div>
+
     <% when 'video' %>
       <div class="bubble-content">
         <% url = message.payload['url'] || message.payload['media_url'] %>
@@ -98,9 +99,9 @@
         <% end %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status" style="margin-left: 0;">
+          <span class="message-status">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -122,6 +123,7 @@
           </span>
         <% end %>
       </div>
+
     <% when 'location' %>
       <div class="bubble-content">
         <% loc = message.payload['location'] || {} %>
@@ -133,9 +135,9 @@
         <% end %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status" style="margin-left: 0;">
+          <span class="message-status">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -157,6 +159,7 @@
           </span>
         <% end %>
       </div>
+
     <% when 'contact' %>
       <div class="bubble-content">
         <% contact = message.payload['contact'] || message.payload['contacts']&.first || {} %>
@@ -166,9 +169,9 @@
         </div>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status" style="margin-left: 0;">
+          <span class="message-status">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -190,14 +193,15 @@
           </span>
         <% end %>
       </div>
+
     <% else %>
       <div class="bubble-content">
         <%= message.body.presence || "[#{message.message_type}]" %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status" style="margin-left: 0;">
+          <span class="message-status">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
