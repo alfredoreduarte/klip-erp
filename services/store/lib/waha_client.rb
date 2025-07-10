@@ -19,48 +19,76 @@ class WahaClient
     })
   end
 
-  # Starts (or creates if it does not yet exist) a WAHA session.
-  # According to WAHA API docs, the correct endpoint is
-  # POST /api/sessions/:name/start
-  # See error message returned by WAHA when calling /api/screenshot
-  #   "We didn't find a session with name 'default'. Please start it first by using POST /api/sessions/default/start request"
-  # We therefore call that endpoint directly and do not send any body payload.
-  def start_session(name: "default")
-    webhook_url = ENV.fetch("WAHA_WEBHOOK_URL", "http://store:3000/waha/webhooks")
-
-    # Ensure the session has our webhook configured. We try to create or update
-    # the session with the webhook configuration first, then start (or
-    # restart) it.
-    config_payload = {
+  # Create (or update) and start a WAHA session.
+  #
+  # The WAHA API allows including `start: true` in the payload when creating a
+  # new session so that the session is started immediately.  For an existing
+  # session we update the configuration (to ensure webhook + metadata are up to
+  # date) and then explicitly restart it.
+  #
+  # Params
+  # - name:        the WAHA session name
+  # - metadata:    optional additional metadata to persist with the session
+  #                (e.g. { "store.id" => 1 })
+  # - webhook_url: URL that WAHA should POST events to (defaults to
+  #                WAHA_WEBHOOK_URL env var or Rails host)
+  def start_session(name: "default", metadata: {}, webhook_url: ENV.fetch("WAHA_WEBHOOK_URL", "http://store:3000/waha/webhooks"))
+    payload = {
       name: name,
+      start: true,
       config: {
         webhooks: [
           {
             url: webhook_url,
             events: ["message"]
           }
-        ]
-      }
+        ],
+        metadata: metadata.presence
+      }.compact
     }
 
     begin
-      # Create session if it doesn't exist yet
-      post("/api/sessions", config_payload)
-    rescue Error => e
-      # If already exists, update it to make sure webhook is set
+      # Try to create and autostart the session.
+      post("/api/sessions", payload)
+    rescue Error
+      # If it already exists, update configuration then restart.
       begin
-        put("/api/sessions/#{name}", config_payload)
+        put("/api/sessions/#{name}", payload.except(:start))
       rescue Error
-        # Swallow – we'll still attempt to (re)start below
+        # Ignore – maybe config didn't change.
+      ensure
+        post("/api/sessions/#{name}/restart", {})
       end
     end
-
-    # Finally start (or restart) the session so WAHA picks up the new config
-    post("/api/sessions/#{name}/start", {})
   end
 
   def screenshot(session: "default")
     @conn.get("/api/screenshot", { session: session }).body
+  end
+
+  # Fetch current QR code for the given WAHA session.
+  # Returns PNG binary data (format=image) so callers can stream or base64-encode it.
+  # If you need the raw string value, pass format: "raw".
+  def qr(session: "default", format: "image")
+    headers = {}
+    headers["Accept"] = "image/png" if format == "image"
+
+    res = @conn.get("/api/#{session}/auth/qr", { format: format }, headers)
+
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  def delete_session(name: "default")
+    res = @conn.delete("/api/sessions/#{name}")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
   end
 
   private

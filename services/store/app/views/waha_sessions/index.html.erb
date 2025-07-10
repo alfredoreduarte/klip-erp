@@ -24,6 +24,7 @@
           <%= link_to "QR", waha_qr_path(session: session.name), class: "underline text-blue-600" %>
           <%= link_to "Chats", waha_session_chats_path(session), class: "underline text-blue-600" %>
           <%= button_to "Restart", "/waha/sessions", method: :post, params: { name: session.name }, class: "underline text-blue-600", form: { data: { turbo_confirm: "Restart session?" } } %>
+          <%= button_to "Delete", "/waha/sessions/#{session.id}", method: :delete, class: "underline text-red-600", form: { data: { turbo_confirm: "Delete session?" } } %>
         </td>
       </tr>
     <% end %>
