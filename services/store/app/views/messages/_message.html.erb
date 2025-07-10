@@ -3,11 +3,11 @@
     <!-- SVG Tail -->
     <% if message.outgoing? %>
       <svg class="bubble-tail bubble-tail-outgoing" width="8" height="13" viewBox="0 0 8 13">
-        <path d="M1.533 0.004C1.543 0.004 1.553 0.004 1.563 0.004C1.953 0.004 2.343 0.164 2.623 0.484C3.263 1.204 4.003 2.124 4.503 3.044C5.003 3.964 5.263 4.884 5.263 5.504C5.263 6.124 5.003 7.044 4.503 7.964C4.003 8.884 3.263 9.804 2.623 10.524C2.343 10.844 1.953 11.004 1.563 11.004C1.553 11.004 1.543 11.004 1.533 11.004C1.143 11.004 0.753 10.844 0.473 10.524C0.163 10.184 0.003 9.724 0.003 9.244L0.003 1.764C0.003 1.284 0.163 0.824 0.473 0.484C0.753 0.164 1.143 0.004 1.533 0.004Z" fill="#d9fdd3"/>
+        <path d="M1.533 0.004L1.563 0.004C1.953 0.004 2.343 0.164 2.623 0.484C3.263 1.204 4.003 2.124 4.503 3.044C5.003 3.964 5.263 4.884 5.263 5.504C5.263 6.124 5.003 7.044 4.503 7.964C4.003 8.884 3.263 9.804 2.623 10.524C2.343 10.844 1.953 11.004 1.563 11.004L1.533 11.004C1.143 11.004 0.753 10.844 0.473 10.524C0.163 10.184 0.003 9.724 0.003 9.244L0.003 1.764C0.003 1.284 0.163 0.824 0.473 0.484C0.753 0.164 1.143 0.004 1.533 0.004Z" fill="#d9fdd3"/>
       </svg>
     <% else %>
       <svg class="bubble-tail bubble-tail-incoming" width="8" height="13" viewBox="0 0 8 13">
-        <path d="M6.467 0.004C6.457 0.004 6.447 0.004 6.437 0.004C6.047 0.004 5.657 0.164 5.377 0.484C4.737 1.204 3.997 2.124 3.497 3.044C2.997 3.964 2.737 4.884 2.737 5.504C2.737 6.124 2.997 7.044 3.497 7.964C3.997 8.884 4.737 9.804 5.377 10.524C5.657 10.844 6.047 11.004 6.437 11.004C6.447 11.004 6.457 11.004 6.467 11.004C6.857 11.004 7.247 10.844 7.527 10.524C7.837 10.184 7.997 9.724 7.997 9.244L7.997 1.764C7.997 1.284 7.837 0.824 7.527 0.484C7.247 0.164 6.857 0.004 6.467 0.004Z" fill="white"/>
+        <path d="M6.467 0.004L6.437 0.004C6.047 0.004 5.657 0.164 5.377 0.484C4.737 1.204 3.997 2.124 3.497 3.044C2.997 3.964 2.737 4.884 2.737 5.504C2.737 6.124 2.997 7.044 3.497 7.964C3.997 8.884 4.737 9.804 5.377 10.524C5.657 10.844 6.047 11.004 6.437 11.004L6.467 11.004C6.857 11.004 7.247 10.844 7.527 10.524C7.837 10.184 7.997 9.724 7.997 9.244L7.997 1.764C7.997 1.284 7.837 0.824 7.527 0.484C7.247 0.164 6.857 0.004 6.467 0.004Z" fill="white"/>
       </svg>
     <% end %>
 
@@ -18,9 +18,9 @@
         <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status">
+          <span class="message-status" style="margin-left: 0;">
             <% 
               # Message status logic based on age (mock implementation)
               # In real WhatsApp: sent -> delivered -> read
@@ -65,9 +65,9 @@
         <% end %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status">
+          <span class="message-status" style="margin-left: 0;">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -98,9 +98,9 @@
         <% end %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status">
+          <span class="message-status" style="margin-left: 0;">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -133,9 +133,9 @@
         <% end %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status">
+          <span class="message-status" style="margin-left: 0;">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -166,9 +166,9 @@
         </div>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status">
+          <span class="message-status" style="margin-left: 0;">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
@@ -195,9 +195,9 @@
         <%= message.body.presence || "[#{message.message_type}]" %>
       </div>
       <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <span class="bubble-timestamp" style="margin-left: 0;"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
-          <span class="message-status">
+          <span class="message-status" style="margin-left: 0;">
             <% 
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)

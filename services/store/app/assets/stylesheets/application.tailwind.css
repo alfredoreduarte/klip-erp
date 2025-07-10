@@ -12,18 +12,19 @@
   .bubble-base {
     @apply relative max-w-md shadow-sm text-sm leading-relaxed;
     border-radius: 8px;
-    padding: 6px 7px 8px 9px;
+    padding: 8px 12px 8px 12px;
   }
 
   .bubble-incoming {
     @apply bubble-base bg-white;
     border-bottom-left-radius: 3px;
+    padding: 8px 12px 8px 12px;
   }
 
   .bubble-outgoing {
     @apply bubble-base bg-[#d9fdd3];
     border-bottom-right-radius: 3px;
-    padding: 6px 9px 8px 7px;
+    padding: 8px 12px 8px 12px;
   }
 
   .bubble-tail {
@@ -31,35 +32,36 @@
   }
 
   .bubble-tail-incoming {
-    left: -6px;
+    left: -8px;
   }
 
   .bubble-tail-outgoing {
-    right: -6px;
+    right: -8px;
   }
 
   .bubble-timestamp {
-    @apply text-[11px] text-[#667781] whitespace-nowrap select-none opacity-60;
-    margin-top: 2px;
-    margin-left: 3px;
+    @apply text-[11px] text-[#667781] whitespace-nowrap select-none;
+    opacity: 0.7;
   }
 
   .bubble-content {
     word-wrap: break-word;
     line-height: 1.4;
+    margin-bottom: 2px;
   }
 
   .message-status {
     @apply inline-flex items-center;
-    margin-left: 4px;
   }
 
   .message-status-single {
-    @apply w-4 h-4 text-[#667781] opacity-60;
+    @apply w-4 h-4 text-[#667781];
+    opacity: 0.7;
   }
 
   .message-status-double {
-    @apply w-4 h-4 text-[#667781] opacity-60;
+    @apply w-4 h-4 text-[#667781];
+    opacity: 0.7;
   }
 
   .message-status-read {
@@ -67,8 +69,9 @@
   }
 
   .message-time-status {
-    @apply flex items-center justify-end;
-    margin-top: 2px;
+    @apply flex items-end justify-end;
+    margin-top: 4px;
     min-height: 16px;
+    gap: 3px;
   }
 }
