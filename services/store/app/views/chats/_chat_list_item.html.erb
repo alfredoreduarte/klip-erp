@@ -1,11 +1,11 @@
 <%# frozen_string_literal: true %>
 <% active = defined?(@chat) && @chat.id == chat.id %>
-<%= link_to chat_path(chat), class: "chat-list-item #{'active' if active}" do %>
+<%= link_to chat_path(chat), class: "group chat-list-item #{'active' if active}" do %>
   <div class="chat-avatar">
     <% initials = (chat.name.presence || chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
     <%= initials %>
   </div>
-  
+
   <div class="chat-info">
     <div class="chat-header">
       <h3 class="chat-name"><%= chat.name.presence || chat.wa_id %></h3>
@@ -13,14 +13,14 @@
         <% if chat.last_message_at.present? %>
           <span class="chat-time"><%= chat.last_message_at.strftime('%H:%M') %></span>
         <% end %>
-        <% if chat.messages.where(outgoing: false, read_at: nil).exists? %>
+        <% if chat.messages.incoming.where(read_at: nil).exists? %>
           <div class="chat-unread-badge">
-            <%= chat.messages.where(outgoing: false, read_at: nil).count %>
+            <%= chat.messages.incoming.where(read_at: nil).count %>
           </div>
         <% end %>
       </div>
     </div>
-    
+
     <div class="flex items-center justify-between">
       <div class="flex items-center flex-1 min-w-0">
         <% last_message = chat.messages.last %>
@@ -28,7 +28,7 @@
           <% if last_message.outgoing? %>
             <div class="flex items-center mr-1">
               <!-- Status indicator for outgoing messages -->
-              <% 
+              <%
                 age_minutes = (Time.current - last_message.created_at) / 1.minute
                 if age_minutes < 5
                   status_class = "text-[#667781]"

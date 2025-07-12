@@ -166,7 +166,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
     t.datetime "sent_at", comment: "Original timestamp from WhatsApp"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "read_at"
     t.index ["chat_id"], name: "index_messages_on_chat_id"
+    t.index ["read_at"], name: "index_messages_on_read_at"
     t.index ["wa_message_id"], name: "index_messages_on_wa_message_id", unique: true
   end
 

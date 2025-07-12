@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer components {
+  /* Base bubble styles that can be applied with @apply */
+    .bubble-base {
+      @apply relative max-w-md text-sm leading-relaxed;
+      border-radius: 7.5px;
+      padding: 6px 7px 8px 9px;
+      box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+    }
   /* WhatsApp-specific styles scoped to avoid affecting other parts of the app */
   .whatsapp-chat-container {
     /* Chat background */
@@ -12,14 +19,7 @@
       background-repeat: repeat;
     }
 
-    /* Message bubble styles */
-    .bubble-base {
-      @apply relative max-w-md text-sm leading-relaxed;
-      border-radius: 7.5px;
-      padding: 6px 7px 8px 9px;
-      box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
-    }
-
+                                                                /* Message bubble styles */
     .bubble-incoming {
       @apply bubble-base bg-white;
       border-bottom-left-radius: 3px;
@@ -144,7 +144,7 @@
     }
 
     .session-item {
-      @apply group flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer;
+      @apply flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer;
       background: #2a3942;
       border: 2px solid transparent;
     }
@@ -180,7 +180,7 @@
 
     /* Chat list improvements */
     .chat-list-item {
-      @apply group flex items-center px-4 py-3 cursor-pointer transition-all duration-150;
+      @apply flex items-center px-4 py-3 cursor-pointer transition-all duration-150;
       border-bottom: 1px solid rgba(233, 237, 239, 0.5);
     }
 
