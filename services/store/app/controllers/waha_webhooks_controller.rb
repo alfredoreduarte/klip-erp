@@ -19,6 +19,9 @@ class WahaWebhooksController < ApplicationController
     when "message"
       handle_single_message(data)
       head :ok
+    when "presence.update"
+      handle_presence_update(data)
+      head :ok
     else
       Rails.logger.info "Unhandled WAHA event: #{event}"
       head :accepted
@@ -41,6 +44,13 @@ class WahaWebhooksController < ApplicationController
     chat = Chat.find_or_create_by!(wa_id: chat_id)
     if waha_session && chat.waha_session_id.nil?
       chat.update(waha_session: waha_session)
+    end
+    # Always attempt to fetch latest profile picture
+    chat.refresh_profile!(session_name)
+
+    # Update name from message data if available and not already set
+    if msg["pushName"].present?
+      chat.update_name_from_message!(msg["pushName"])
     end
 
     body_text = if msg["body"].present?
@@ -72,6 +82,13 @@ class WahaWebhooksController < ApplicationController
       if waha_session && chat.waha_session_id.nil?
         chat.update(waha_session: waha_session)
       end
+      # Always attempt to fetch latest profile picture
+      chat.refresh_profile!(session_name)
+
+      # Update name from message data if available and not already set
+      if msg_payload["pushName"].present?
+        chat.update_name_from_message!(msg_payload["pushName"])
+      end
 
       # Determine direction based on `fromMe` flag
       direction = msg_payload["fromMe"] ? :outgoing : :incoming
@@ -86,5 +103,38 @@ class WahaWebhooksController < ApplicationController
         sent_at: (Time.at(msg_payload["timestamp"]).utc rescue nil)
       )
     end
+  end
+
+  def handle_presence_update(payload)
+    chat_wa_id = payload["id"] || payload["chatId"]
+    return if chat_wa_id.blank?
+
+    chat = Chat.find_by(wa_id: chat_wa_id)
+    return unless chat
+
+    # Determine if any participant (other than us) is typing/composing.
+    typing = Array(payload["presences"]).any? do |p|
+      status = p["lastKnownPresence"]
+
+      # Skip entries that refer to our own account. WAHA marks these with
+      # `isSelf` (boolean). Fallback to checking `participant` when present
+      # but equal to the session wid (if available) or not equal to the chat id
+      next false if p["isSelf"]
+
+      participant = p["participant"]
+      # In 1-to-1 chats `participant` may be nil. When present, ignore if it
+      # matches our chat wa_id (the remote contact) OR looks like our own wa_id.
+      # For our purpose we only care about other participant(s), so require a
+      # presence entry that is NOT self and not the chat itself (group case).
+
+      %w[typing composing recording-audio].include?(status)
+    end
+
+    Turbo::StreamsChannel.broadcast_update_to(
+      "chat_presence_#{chat.id}",
+      target: "typing-indicator",
+      partial: "chats/typing_indicator",
+      locals: { chat: chat, show: typing }
+    )
   end
 end

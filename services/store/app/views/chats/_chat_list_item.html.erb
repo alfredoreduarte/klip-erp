@@ -1,9 +1,13 @@
 <%# frozen_string_literal: true %>
 <% active = defined?(@chat) && @chat.id == chat.id %>
 <%= link_to chat_path(chat), class: "group chat-list-item #{'active' if active}" do %>
-  <div class="chat-avatar">
-    <% initials = (chat.name.presence || chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
-    <%= initials %>
+  <div class="chat-avatar overflow-hidden">
+    <% if chat.profile_pic_url.present? %>
+      <img src="<%= chat.profile_pic_url %>" alt="avatar" class="w-full h-full object-cover rounded-full" />
+    <% else %>
+      <% initials = (chat.name.presence || chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
+      <%= initials %>
+    <% end %>
   </div>
 
   <div class="chat-info">

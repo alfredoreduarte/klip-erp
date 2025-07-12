@@ -21,4 +21,22 @@ class Chat < ApplicationRecord
       expires_at: 24.hours.from_now
     )
   end
+
+  def refresh_profile!(session_name = "default")
+    client = WahaClient.new
+    begin
+      res = client.contact_profile_picture(wa_id: wa_id, session: session_name)
+      # Always update with the latest value from WAHA, even if nil
+      update_column(:profile_pic_url, res[:picture])
+    rescue WahaClient::Error => e
+      Rails.logger.warn "Failed to fetch profile picture for #{wa_id}: #{e.message}"
+    end
+  end
+
+  # Update name from message data if not already set
+  def update_name_from_message!(push_name)
+    return if name.present? || push_name.blank?
+
+    update_column(:name, push_name)
+  end
 end

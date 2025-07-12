@@ -10,7 +10,7 @@
           <% end %>
         <% end %>
       </div>
-      
+
       <div class="px-2">
         <button onclick="openNewSessionModal()" class="create-session-btn" title="Create New Session">
           +
@@ -62,9 +62,13 @@
       <!-- Chat header -->
       <div class="whatsapp-header">
         <div class="flex items-center flex-1">
-          <div class="whatsapp-header-avatar">
-            <% initials = (@chat.name.presence || @chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
-            <%= initials %>
+          <div class="whatsapp-header-avatar overflow-hidden">
+            <% if @chat.profile_pic_url.present? %>
+              <img src="<%= @chat.profile_pic_url %>" alt="avatar" class="w-full h-full object-cover rounded-full" />
+            <% else %>
+              <% initials = (@chat.name.presence || @chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] %>
+              <%= initials %>
+            <% end %>
           </div>
           <div class="whatsapp-header-info">
             <h2 class="whatsapp-header-name"><%= @chat.name.presence || @chat.wa_id %></h2>
@@ -92,11 +96,13 @@
 
       <!-- Messages scroller -->
       <turbo-frame id="chat_<%= @chat.id %>_messages" class="flex-1 overflow-y-auto p-6" target="_top">
+        <%# Subscribe to presence updates for this chat %>
+        <%= turbo_stream_from "chat_presence_#{@chat.id}" %>
         <div id="messages_scroller" class="space-y-2">
           <%= render partial: "messages/message", collection: @messages, as: :message %>
-          
+
           <!-- Typing indicator -->
-          <%= render partial: "chats/typing_indicator" %>
+          <%= render partial: "chats/typing_indicator", locals: { chat: @chat, show: false } %>
         </div>
       </turbo-frame>
 
@@ -109,12 +115,12 @@
               <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
             </svg>
           </button>
-          
+
           <!-- Message input -->
           <div class="composer-input-wrapper">
-            <%= f.text_field :body, class: "composer-input", placeholder: "Type a message", rows: 1 %>
+            <%= f.text_field :body, class: "composer-input", placeholder: "Type a message", rows: 1, data: { controller: "typing", "typing-chat-id-value": @chat.id, action: "input->typing#start blur->typing#stop" } %>
           </div>
-          
+
           <!-- Send button -->
           <%= f.submit class: "composer-send-btn" do %>
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">

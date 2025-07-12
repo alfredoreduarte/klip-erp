@@ -20,6 +20,12 @@ Rails.application.routes.draw do
 
   resources :chats, only: [:index, :show] do
     resources :messages, only: :create
+
+    # Typing indicator endpoints
+    member do
+      post :typing, to: "chats#start_typing"
+      post :typing_stop, path: "typing/stop", to: "chats#stop_typing"
+    end
   end
 
   resources :waha_events, only: :index

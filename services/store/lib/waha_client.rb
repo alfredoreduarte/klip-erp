@@ -1,4 +1,5 @@
 require "faraday"
+require "cgi"
 
 class WahaClient
   class Error < StandardError; end
@@ -87,6 +88,37 @@ class WahaClient
     raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
 
     res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  def start_typing(phone_number:, session: "default")
+    post("/api/startTyping", {
+      chatId: "#{phone_number}@c.us",
+      session: session
+    })
+  end
+
+  # Inform WAHA that typing has stopped for the given chat.
+  # According to WAHA docs this resets the presence status back to "available".
+  def stop_typing(phone_number:, session: "default")
+    post("/api/stopTyping", {
+      chatId: "#{phone_number}@c.us",
+      session: session
+    })
+  end
+
+  # Fetch contact profile picture.
+  # Returns a hash with key :picture (may be nil if not available).
+  # WAHA endpoint: GET /api/contacts/profile-picture?contactId={wa_id}
+  def contact_profile_picture(wa_id:, session: "default")
+    res = @conn.get("/api/contacts/profile-picture", { contactId: wa_id })
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    # WAHA returns { profilePictureURL: "url" } or { profilePictureURL: null }
+    picture_url = res.body[:profilePictureURL]
+
+    { picture: picture_url }
   rescue Faraday::Error => e
     raise Error, e.message
   end
