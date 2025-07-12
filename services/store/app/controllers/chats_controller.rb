@@ -2,30 +2,42 @@ class ChatsController < ApplicationController
   def index
     if params[:waha_session_id].present?
       @waha_session = WahaSession.find(params[:waha_session_id])
-      @chats = @waha_session.chats.order(last_message_at: :desc)
+      @chats = @waha_session.chats
     else
-      @chats = Chat.order(last_message_at: :desc).limit(200)
+      @chats = Chat.all
     end
 
-    # Attempt to refresh profile pictures for all chats when list is loaded
-    @chats.each do |chat|
-      chat.refresh_profile!(chat.waha_session&.name || "default")
-    end
+    # Stable, WhatsApp-like sorting: latest message sent_at (or created_at), fallback to last_message_at, then chat id
+    @chats = @chats.left_joins(:messages)
+                   .select('chats.*, COALESCE(MAX(messages.sent_at), MAX(messages.created_at), chats.last_message_at, chats.created_at) AS sort_time')
+                   .group('chats.id')
+                   .order('sort_time DESC, chats.id DESC')
+                   .limit(200)
+
+    # Mark all incoming, unread messages as read for all visible chats
+    Message.where(chat_id: @chats.map(&:id)).incoming.where(read_at: nil).update_all(read_at: Time.current)
   end
 
   def show
     @chat = Chat.find(params[:id])
 
-    # Attempt to refresh profile picture when chat is loaded
-    @chat.refresh_profile!(@chat.waha_session&.name || "default")
+    # Mark all incoming, unread messages as read
+    @chat.messages.incoming.where(read_at: nil).update_all(read_at: Time.current)
 
     # Load chats for the list sidebar – either scoped to the WAHA session or global
     if params[:waha_session_id].present?
       @waha_session = WahaSession.find(params[:waha_session_id])
-      @chats = @waha_session.chats.order(last_message_at: :desc)
+      @chats = @waha_session.chats
     else
-      @chats = Chat.order(last_message_at: :desc).limit(200)
+      @chats = Chat.all
     end
+
+    # Stable, WhatsApp-like sorting for sidebar
+    @chats = @chats.left_joins(:messages)
+                   .select('chats.*, COALESCE(MAX(messages.sent_at), MAX(messages.created_at), chats.last_message_at, chats.created_at) AS sort_time')
+                   .group('chats.id')
+                   .order('sort_time DESC, chats.id DESC')
+                   .limit(200)
 
     # Fallback to the chat's session so the UI can highlight it even without the param
     @waha_session ||= @chat.waha_session
