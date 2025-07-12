@@ -123,6 +123,19 @@ class WahaClient
     raise Error, e.message
   end
 
+  # Fetch messages for a specific chat from WAHA.
+  # Returns an array of message objects.
+  # WAHA endpoint: GET /api/{session}/chats/{chatId}/messages
+  def chat_messages(chat_id:, session: "default", limit: 100, offset: 0)
+    params = { limit: limit, offset: offset }
+    res = @conn.get("/api/#{session}/chats/#{chat_id}/messages", params)
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
   private
 
   def post(path, payload)

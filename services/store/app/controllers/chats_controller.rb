@@ -21,6 +21,9 @@ class ChatsController < ApplicationController
   def show
     @chat = Chat.find(params[:id])
 
+    # Sync messages from WAHA to ensure we have all messages (both incoming and outgoing)
+    @chat.sync_messages_from_waha!
+
     # Mark all incoming, unread messages as read
     @chat.messages.incoming.where(read_at: nil).update_all(read_at: Time.current)
 

@@ -18,7 +18,7 @@
         <% end %>
       </div>
       <div class="whatsapp-header-status">
-        <%= pluralize(@chats.count, 'chat') %> total
+        <%= pluralize(@chats.size, 'chat') %> total
         <% if defined?(@waha_session) && @waha_session.present? %>
           | <%= link_to "Back to sessions", waha_sessions_path, class: "text-[#00a884] hover:underline" %>
         <% end %>
