@@ -99,7 +99,11 @@
         <%# Subscribe to presence updates for this chat %>
         <%= turbo_stream_from "chat_presence_#{@chat.id}" %>
         <div id="messages_scroller" class="space-y-2">
-          <%= render partial: "messages/message", collection: @messages, as: :message %>
+          <% grouped_messages = @messages.group_by { |m| (m.sent_at || m.created_at).to_date } %>
+          <% grouped_messages.each do |date, msgs| %>
+            <%= render partial: "messages/date_separator", locals: { date: date } %>
+            <%= render partial: "messages/message", collection: msgs, as: :message %>
+          <% end %>
 
           <!-- Typing indicator -->
           <%= render partial: "chats/typing_indicator", locals: { chat: @chat, show: false } %>

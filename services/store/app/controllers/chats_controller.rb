@@ -57,7 +57,8 @@ class ChatsController < ApplicationController
     # Load all WAHA sessions so we can show them in the thin left-most sidebar
     @sessions = WahaSession.order(:name)
 
-    @messages = @chat.messages.order(:created_at)
+    # Order messages chronologically using their actual sent time when available
+    @messages = @chat.messages.order(Arel.sql("COALESCE(sent_at, created_at) ASC"))
   end
 
   def start_typing

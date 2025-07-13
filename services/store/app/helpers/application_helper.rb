@@ -3,10 +3,32 @@ module ApplicationHelper
 
   def auto_scroll_frame
     tag.script <<~JS.html_safe
-      document.addEventListener("turbo:load", () => {
-        const frame = document.getElementById("messages_scroller");
-        if (frame) frame.scrollTop = frame.scrollHeight;
-      });
+      (() => {
+        const findScrollable = () => {
+          // The turbo-frame containing messages is the scrollable element
+          const frame = document.querySelector('turbo-frame[id$="_messages"]');
+          if (frame) return frame;
+          // Fallback to inner div (older logic)
+          return document.getElementById("messages_scroller");
+        };
+
+        const scrollToBottom = (el = findScrollable()) => {
+          if (el) el.scrollTop = el.scrollHeight;
+        };
+
+        // Initial call in case event already fired before script was parsed
+        scrollToBottom();
+
+        // When the full page (Turbo visit) finishes loading
+        document.addEventListener("turbo:load", () => scrollToBottom());
+
+        // When the messages turbo-frame updates (e.g., new message append)
+        document.addEventListener("turbo:frame-load", (event) => {
+          if (event.target && event.target.id && event.target.id.endsWith("_messages")) {
+            scrollToBottom(event.target);
+          }
+        });
+      })();
     JS
   end
 
