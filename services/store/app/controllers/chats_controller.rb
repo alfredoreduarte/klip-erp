@@ -8,7 +8,7 @@ class ChatsController < ApplicationController
     else
       # Refresh overview for all sessions (usually few) to keep timestamps fresh
       WahaSession.find_each { |s| s.sync_chats_overview! }
-      @chats = Chat.all
+      @chats = Chat.non_broadcast
     end
 
     # Stable, WhatsApp-like sorting: latest message sent_at (or created_at), fallback to last_message_at, then chat id
@@ -41,7 +41,7 @@ class ChatsController < ApplicationController
       @waha_session = WahaSession.find(params[:waha_session_id])
       @chats = @waha_session.chats
     else
-      @chats = Chat.all
+      @chats = Chat.non_broadcast
     end
 
     # Stable, WhatsApp-like sorting for sidebar

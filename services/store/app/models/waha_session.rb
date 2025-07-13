@@ -8,7 +8,7 @@ class WahaSession < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
 
-  has_many :chats, dependent: :nullify
+  has_many :chats, -> { where.not(wa_id: "status@broadcast") }, dependent: :nullify
 
   # Return the display label for status, could be improved later
   def status_label

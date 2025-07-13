@@ -5,6 +5,8 @@ class Chat < ApplicationRecord
 
   validates :wa_id, presence: true, uniqueness: true
 
+  scope :non_broadcast, -> { where.not(wa_id: "status@broadcast") }
+
   # Update last_message_at whenever a message is created
   def touch_last_message!(time = Time.current)
     update_column(:last_message_at, time)
