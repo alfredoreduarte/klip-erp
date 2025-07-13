@@ -136,6 +136,18 @@ class WahaClient
     raise Error, e.message
   end
 
+  # Fetch chats overview for a specific session. This endpoint returns high-level
+  # information for each chat (id, name, lastMessageTimestamp, unreadCount, etc.)
+  # WAHA endpoint: GET /api/{session}/chats/overview
+  def chats_overview(session: "default")
+    res = @conn.get("/api/#{session}/chats/overview")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
   private
 
   def post(path, payload)

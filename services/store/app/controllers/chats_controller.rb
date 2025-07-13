@@ -2,8 +2,12 @@ class ChatsController < ApplicationController
   def index
     if params[:waha_session_id].present?
       @waha_session = WahaSession.find(params[:waha_session_id])
+      # Refresh chats overview to ensure last_message_at is up-to-date without fetching every message
+      @waha_session.sync_chats_overview!
       @chats = @waha_session.chats
     else
+      # Refresh overview for all sessions (usually few) to keep timestamps fresh
+      WahaSession.find_each { |s| s.sync_chats_overview! }
       @chats = Chat.all
     end
 
@@ -23,6 +27,11 @@ class ChatsController < ApplicationController
 
     # Sync messages from WAHA to ensure we have all messages (both incoming and outgoing)
     @chat.sync_messages_from_waha!
+
+    # Also refresh chats overview for the associated WAHA session so timestamps stay accurate
+    if @chat.waha_session
+      @chat.waha_session.sync_chats_overview!
+    end
 
     # Mark all incoming, unread messages as read
     @chat.messages.incoming.where(read_at: nil).update_all(read_at: Time.current)

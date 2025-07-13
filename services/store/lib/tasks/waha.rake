@@ -17,4 +17,18 @@ namespace :waha do
     File.binwrite(file_path, img_data)
     puts "QR code saved to #{file_path}. Open this image and scan it with WhatsApp → Linked devices."
   end
+
+  desc "Sync chats overview for all WAHA sessions and update last_message_at (usage: rake waha:sync_chats_overview)"
+  task :sync_chats_overview => :environment do
+    puts "Fetching chats overview from WAHA for all sessions..."
+    WahaSession.find_each do |session|
+      begin
+        session.sync_chats_overview!
+        puts " → Synced session '#{session.name}'"
+      rescue StandardError => e
+        warn " ! Failed to sync session '#{session.name}': #{e.message}"
+      end
+    end
+    puts "Done."
+  end
 end

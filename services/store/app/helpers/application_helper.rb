@@ -22,4 +22,23 @@ module ApplicationHelper
       %(<a href="#{ERB::Util.html_escape(url)}" #{attributes} target="_blank">#{ERB::Util.html_escape(url)}</a>)
     end.html_safe
   end
+
+  # Formats a timestamp in WhatsApp-like style for chat lists
+  # Today: HH:MM
+  # Yesterday: 'Yesterday'
+  # Within last week: weekday name (e.g., Thursday)
+  # Older: 'Month Day' (e.g., May 1st)
+  def whatsapp_chat_timestamp(time)
+    return "" unless time
+    now = Time.zone.now
+    if time.to_date == now.to_date
+      time.strftime("%H:%M")
+    elsif time.to_date == (now.to_date - 1)
+      "Yesterday"
+    elsif time > now.beginning_of_week
+      time.strftime("%A")
+    else
+      time.strftime("%b #{time.day.ordinalize}")
+    end
+  end
 end

@@ -1,6 +1,6 @@
 <%# frozen_string_literal: true %>
 <% active = defined?(@chat) && @chat.id == chat.id %>
-<%= link_to chat_path(chat), class: "group chat-list-item #{'active' if active}" do %>
+<%= link_to chat_path(chat), class: "group chat-list-item #{'active' if active}", data: { turbo_prefetch: false } do %>
   <div class="chat-avatar overflow-hidden">
     <% if chat.profile_pic_url.present? %>
       <img src="<%= chat.profile_pic_url %>" alt="avatar" class="w-full h-full object-cover rounded-full" />
@@ -13,9 +13,10 @@
   <div class="chat-info">
     <div class="chat-header">
       <h3 class="chat-name"><%= chat.name.presence || chat.wa_id %></h3>
-      <div class="flex items-center">
-        <% if chat.last_message_at.present? %>
-          <span class="chat-time"><%= chat.last_message_at.strftime('%H:%M') %></span>
+      <div class="flex flex-col items-end ml-auto min-w-[48px]">
+        <% timestamp = chat.last_message_at.presence || (defined?(last_message) && last_message && (last_message.sent_at || last_message.created_at)) %>
+        <% if timestamp.present? %>
+          <span class="chat-time text-xs text-[#8696a0] mb-1"><%= whatsapp_chat_timestamp(timestamp) %></span>
         <% end %>
         <% if chat.messages.incoming.where(read_at: nil).exists? %>
           <div class="chat-unread-badge">
