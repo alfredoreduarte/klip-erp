@@ -40,6 +40,44 @@ class WahaSession < ApplicationRecord
         time_obj = Time.at(last_ts.to_i).utc rescue nil
         chat.touch_last_message!(time_obj) if time_obj
       end
+
+      # ---------------------------------------------
+      # NEW: persist avatar & last message snippet
+      # ---------------------------------------------
+
+      # 1) Profile picture URL
+      picture_url = chat_info[:picture] || chat_info["picture"]
+      if picture_url.present? && picture_url != chat.profile_pic_url
+        chat.update_column(:profile_pic_url, picture_url)
+      end
+
+      # 2) Last message payload (so sidebar shows snippet)
+      last_msg = chat_info[:lastMessage] || chat_info["lastMessage"]
+      if last_msg.present?
+        message_id = last_msg[:id] || last_msg["id"]
+        if message_id.present? && !chat.messages.exists?(wa_message_id: message_id)
+          direction = (last_msg[:fromMe] || last_msg["fromMe"]) ? :outgoing : :incoming
+
+          body_text =
+            last_msg[:body] || last_msg["body"] ||
+            last_msg.dig(:text, :body) || last_msg.dig("text", "body")
+
+          sent_at_ts = last_msg[:timestamp] || last_msg["timestamp"]
+          sent_at = Time.at(sent_at_ts.to_i).utc rescue nil
+
+          chat.messages.create!(
+            wa_message_id: message_id,
+            direction: direction,
+            message_type: last_msg[:type] || last_msg["type"] || "text",
+            body: body_text,
+            payload: last_msg,
+            sent_at: sent_at
+          )
+
+          # Ensure chat last_message_at reflects this message if newer
+          chat.touch_last_message!(sent_at || Time.current)
+        end
+      end
     end
   rescue WahaClient::Error => e
     Rails.logger.warn "WAHA chats overview sync failed for session #{name}: #{e.message}"
