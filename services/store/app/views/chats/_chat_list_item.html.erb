@@ -31,7 +31,30 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center flex-1 min-w-0">
         <%# We already fetched last_message at the top %>
-        <% if last_message&.body.present? %>
+        <% is_location = last_message && (last_message.message_type == 'location' || (last_message.message_type == 'text' && (last_message.payload['location'].present? || (last_message.payload['lat'].present? && last_message.payload['lng'].present?)))) %>
+        <% if is_location %>
+          <div class="flex items-center text-[#667781]">
+            <% if last_message.outgoing? %>
+              <%
+                age_minutes = (Time.current - last_message.created_at) / 1.minute
+                if age_minutes < 5
+                  status_class = "text-[#667781]"
+                elsif age_minutes < 30
+                  status_class = "text-[#667781]"
+                else
+                  status_class = "text-[#53bdeb]"
+                end
+              %>
+              <svg class="w-3 h-3 mr-1 <%= status_class %>" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M12 2C8.134 2 5 5.134 5 9c0 4.545 5.4 9.318 6.165 10.047.426.406 1.244.406 1.67 0C13.6 18.318 19 13.545 19 9c0-3.866-3.134-7-7-7zM12 11.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" clip-rule="evenodd"/>
+            </svg>
+            <span class="chat-preview">Location</span>
+          </div>
+        <% elsif last_message&.body.present? %>
           <% if last_message.outgoing? %>
             <div class="flex items-center mr-1">
               <!-- Status indicator for outgoing messages -->

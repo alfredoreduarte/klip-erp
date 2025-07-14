@@ -6,6 +6,7 @@ class WahaWebhooksController < ApplicationController
   def receive
     # WAHA sends { event: "...", payload: { ... } }  (modern) or
     # { event: "...", data: { ... } } (older/engine.event)
+    Rails.logger.info "WAHA webhook received: #{params.inspect}"
     event = params[:event]
     data  = params[:data] || params[:payload] || {}
 
@@ -62,11 +63,17 @@ class WahaWebhooksController < ApplicationController
     chat.messages.create!(
       wa_message_id: msg["id"],
       direction: msg["fromMe"] ? :outgoing : :incoming,
-      message_type: msg["type"] || "text",
+      message_type: infer_message_type(msg),
       body: body_text,
       payload: msg,
       sent_at: (Time.at(msg["timestamp"]).in_time_zone rescue nil)
     )
+  end
+
+  # Determine message_type when WAHA omits the `type` field (e.g., location)
+  def infer_message_type(payload)
+    return 'location' if payload['location'].present? || (payload['lat'].present? && payload['lng'].present?)
+    payload['type'].presence || 'text'
   end
 
   def handle_messages_upsert(data)
@@ -97,7 +104,7 @@ class WahaWebhooksController < ApplicationController
         chat: chat,
         wa_message_id: msg_payload["id"],
         direction: direction,
-        message_type: msg_payload["type"] || "text",
+        message_type: infer_message_type(msg_payload),
         body: msg_payload.dig("text", "body") || msg_payload["body"],
         payload: msg_payload,
         sent_at: (Time.at(msg_payload["timestamp"]).utc rescue nil)

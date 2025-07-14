@@ -11,8 +11,15 @@
       </svg>
     <% end %>
 
+    <%# Detect legacy location messages stored as text with lat/lng in payload %>
+    <% effective_type = if message.message_type == 'text' && (message.payload['location'].present? || (message.payload['lat'].present? && message.payload['lng'].present?))
+                        'location'
+                      else
+                        message.message_type
+                      end %>
+
     <%# Render different content based on message type %>
-    <% case message.message_type %>
+    <% case effective_type %>
     <% when 'text' %>
       <div class="bubble-content">
         <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
@@ -21,7 +28,7 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% 
+            <%
               # Message status logic based on age (mock implementation)
               age_minutes = (Time.current - message.created_at) / 1.minute
               if age_minutes < 5
@@ -32,7 +39,7 @@
                 status = :read    # Read (blue)
               end
             %>
-            
+
             <% case status %>
             <% when :single %>
               <!-- Single check mark - sent -->
@@ -64,7 +71,7 @@
           <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
           <% if message.outgoing? %>
             <span class="message-status">
-              <% 
+              <%
                 age_minutes = (Time.current - message.created_at) / 1.minute
                 status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
               %>
@@ -102,7 +109,7 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% 
+            <%
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
             %>
@@ -125,38 +132,59 @@
       </div>
 
     <% when 'location' %>
-      <div class="bubble-content">
-        <% loc = message.payload['location'] || {} %>
-        <% lat = loc['latitude'] || loc['lat'] %>
-        <% lng = loc['longitude'] || loc['lng'] %>
-        <% maps_link = "https://maps.google.com/?q=#{lat},#{lng}" %>
-        <%= link_to maps_link, target: '_blank', class: 'text-blue-600 underline' do %>
-          📍 Location (<%= lat %>, <%= lng %>)
+      <% loc = message.payload['location'] || {} %>
+      <% lat = loc['latitude'] || loc['lat'] || message.payload['lat'] %>
+      <% lng = loc['longitude'] || loc['lng'] || message.payload['lng'] %>
+      <% lat_f = lat.to_f.round(6) if lat.present? %>
+      <% lng_f = lng.to_f.round(6) if lng.present? %>
+      <% maps_link = "https://maps.google.com/?q=#{lat_f},#{lng_f}" %>
+      <% base64_thumb = message.body.to_s.strip %>
+      <% if base64_thumb.present? && base64_thumb.match?(/^[A-Za-z0-9+\/]+={0,2}$/) %>
+        <% map_img = "data:image/jpeg;base64,#{base64_thumb}" %>
+      <% else %>
+        <% map_img = "https://staticmap.openstreetmap.de/staticmap.php?center=#{lat_f},#{lng_f}&zoom=15&size=400x200&markers=#{lat_f},#{lng_f},red" %>
+      <% end %>
+
+      <div class="bubble-content media-message relative">
+        <%= link_to maps_link, target: '_blank' do %>
+          <%= image_tag map_img, class: 'rounded max-w-full h-40 object-cover block' %>
         <% end %>
-      </div>
-      <div class="message-time-status">
-        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
-        <% if message.outgoing? %>
-          <span class="message-status">
-            <% 
-              age_minutes = (Time.current - message.created_at) / 1.minute
-              status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
-            %>
-            <% case status %>
-            <% when :single %>
-              <svg class="message-status-single" viewBox="0 0 16 15">
-                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-              </svg>
-            <% when :double %>
-              <svg class="message-status-double" viewBox="0 0 16 15">
-                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-              </svg>
-            <% when :read %>
-              <svg class="message-status-read" viewBox="0 0 16 15">
-                <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
-              </svg>
+        <div class="message-time-status">
+          <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+          <% if message.outgoing? %>
+            <span class="message-status">
+              <%
+                age_minutes = (Time.current - message.created_at) / 1.minute
+                status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
+              %>
+              <% case status %>
+              <% when :single %>
+                <svg class="message-status-single" viewBox="0 0 16 15">
+                  <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+                </svg>
+              <% when :double %>
+                <svg class="message-status-double" viewBox="0 0 16 15">
+                  <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+                </svg>
+              <% when :read %>
+                <svg class="message-status-read" viewBox="0 0 16 15">
+                  <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+                </svg>
+              <% end %>
+            </span>
+          <% end %>
+        </div>
+        <% loc_name = loc['name'].presence || message.payload['name'].presence || message.payload['loc'].presence %>
+        <% loc_address = loc['address'].presence || message.payload['address'].presence %>
+        <% if loc_name.present? || loc_address.present? %>
+          <div class="mt-1 text-sm px-2 pb-2 text-left">
+            <% if loc_name.present? %>
+              <p class="font-semibold"><%= loc_name %></p>
             <% end %>
-          </span>
+            <% if loc_address.present? %>
+              <p class="text-xs text-gray-600"><%= loc_address %></p>
+            <% end %>
+          </div>
         <% end %>
       </div>
 
@@ -172,7 +200,7 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% 
+            <%
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
             %>
@@ -202,7 +230,7 @@
         <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
         <% if message.outgoing? %>
           <span class="message-status">
-            <% 
+            <%
               age_minutes = (Time.current - message.created_at) / 1.minute
               status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
             %>
