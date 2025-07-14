@@ -1,5 +1,7 @@
 <%# frozen_string_literal: true %>
 <% active = defined?(@chat) && @chat.id == chat.id %>
+<%# Fetch the newest message via model helper to keep view slim %>
+<% last_message = chat.latest_message %>
 <%= link_to chat_path(chat), class: "group chat-list-item #{'active' if active}", data: { turbo_prefetch: false } do %>
   <div class="chat-avatar overflow-hidden">
     <% if chat.profile_pic_url.present? %>
@@ -14,7 +16,7 @@
     <div class="chat-header">
       <h3 class="chat-name"><%= chat.name.presence || chat.wa_id %></h3>
       <div class="flex flex-col items-end ml-auto min-w-[48px]">
-        <% timestamp = chat.last_message_at.presence || (defined?(last_message) && last_message && (last_message.sent_at || last_message.created_at)) %>
+        <% timestamp = chat.latest_message_timestamp %>
         <% if timestamp.present? %>
           <span class="chat-time text-xs text-[#8696a0] mb-1"><%= whatsapp_chat_timestamp(timestamp) %></span>
         <% end %>
@@ -28,7 +30,7 @@
 
     <div class="flex items-center justify-between">
       <div class="flex items-center flex-1 min-w-0">
-        <% last_message = chat.messages.last %>
+        <%# We already fetched last_message at the top %>
         <% if last_message&.body.present? %>
           <% if last_message.outgoing? %>
             <div class="flex items-center mr-1">

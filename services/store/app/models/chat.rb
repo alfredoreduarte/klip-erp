@@ -93,4 +93,16 @@ class Chat < ApplicationRecord
       Rails.logger.warn "Failed to sync messages for #{wa_id}: #{e.message}"
     end
   end
+
+  # Returns the most recent message for the chat based on sent_at or created_at.
+  # Memoized to avoid multiple queries when rendering the chat list item partial.
+  def latest_message
+    @latest_message ||= messages.order(Arel.sql("COALESCE(sent_at, created_at) DESC")).first
+  end
+
+  # Timestamp of the latest activity in the chat. Prefers the message's sent_at/created_at,
+  # falling back to last_message_at (maintained via WAHA chats overview sync).
+  def latest_message_timestamp
+    latest_message&.sent_at || latest_message&.created_at || last_message_at
+  end
 end
