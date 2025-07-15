@@ -63,28 +63,46 @@
 
     <% when 'image' %>
       <div class="bubble-content media-message relative">
-        <% url = message.payload['url'] || message.payload['media_url'] %>
-        <%= link_to url, target: '_blank' do %>
-          <%= image_tag url, class: 'rounded max-w-full h-auto block' %>
+        <% if message.media_file&.file&.attached? %>
+          <%= link_to message.media_file.file, target: '_blank' do %>
+            <%= image_tag message.media_file.file, class: 'rounded max-w-full h-auto block' %>
+          <% end %>
+        <% else %>
+          <% media_url = message.media_url %>
+          <% if media_url.present? %>
+            <% url = waha_file_url(media_url) %>
+            <%= link_to url, target: '_blank' do %>
+              <%= image_tag url, class: 'rounded max-w-full h-auto block', onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+              <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
+                📷 Image (click to view)
+                <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
+                <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded">
+              📷 Image not available
+              <br><small class="text-xs text-gray-400">Media files are temporarily stored in WAHA and may be cleaned up</small>
+            </div>
+          <% end %>
         <% end %>
         <div class="message-time-status">
           <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
-          <% if message.outgoing? %>
+          <% if message.direction == 'outgoing' %>
             <span class="message-status">
-              <%
-                age_minutes = (Time.current - message.created_at) / 1.minute
-                status = age_minutes < 5 ? :single : (age_minutes < 30 ? :double : :read)
-              %>
-              <% case status %>
-              <% when :single %>
+              <% case message.payload['ack'] || 0 %>
+              <% when 0 %>
+                <!-- Single check mark - sent -->
                 <svg class="message-status-single" viewBox="0 0 16 15">
                   <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
                 </svg>
-              <% when :double %>
+              <% when 1 %>
+                <!-- Double check mark - delivered -->
                 <svg class="message-status-double" viewBox="0 0 16 15">
                   <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
                 </svg>
-              <% when :read %>
+              <% when 2 %>
+                <!-- Double check mark - read (blue) -->
                 <svg class="message-status-read" viewBox="0 0 16 15">
                   <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
                 </svg>
@@ -99,8 +117,51 @@
 
     <% when 'video' %>
       <div class="bubble-content">
-        <% url = message.payload['url'] || message.payload['media_url'] %>
-        <%= video_tag url, controls: true, class: 'rounded max-w-full h-60 block' if url.present? %>
+        <% if message.media_file&.file&.attached? %>
+          <%= video_tag message.media_file.file, controls: true, class: 'rounded max-w-full h-60 block' %>
+        <% else %>
+          <% media_url = message.media_url %>
+          <% if media_url.present? %>
+            <% url = waha_file_url(media_url) %>
+            <%= video_tag url, controls: true, class: 'rounded max-w-full h-60 block', onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
+              🎥 Video (click to view)
+              <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
+              <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
+            </div>
+          <% else %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded">
+              🎥 Video not available
+              <br><small class="text-xs text-gray-400">Media files are temporarily stored in WAHA and may be cleaned up</small>
+            </div>
+          <% end %>
+        <% end %>
+        <% if message.body.present? %>
+          <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
+        <% end %>
+      </div>
+
+    <% when 'audio' %>
+      <div class="bubble-content">
+        <% if message.media_file&.file&.attached? %>
+          <%= audio_tag message.media_file.file, controls: true, class: 'w-full' %>
+        <% else %>
+          <% media_url = message.media_url %>
+          <% if media_url.present? %>
+            <% url = waha_file_url(media_url) %>
+            <%= audio_tag url, controls: true, class: 'w-full', onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
+              🎵 Audio (click to play)
+              <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
+              <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
+            </div>
+          <% else %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded">
+              🎵 Audio not available
+              <br><small class="text-xs text-gray-400">Media files are temporarily stored in WAHA and may be cleaned up</small>
+            </div>
+          <% end %>
+        <% end %>
         <% if message.body.present? %>
           <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
         <% end %>

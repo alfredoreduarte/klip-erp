@@ -33,6 +33,9 @@ Rails.application.routes.draw do
   # Link chats filtered by session
   get "/waha/sessions/:waha_session_id/chats", to: "chats#index", as: :waha_session_chats
 
+  # Proxy WAHA file requests to the WAHA service
+  get "/api/files/*path", to: "waha_files#proxy"
+
   # Defines the root path route ("/")
   root "home#index"
 end

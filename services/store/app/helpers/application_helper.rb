@@ -63,4 +63,27 @@ module ApplicationHelper
       time.strftime("%b #{time.day.ordinalize}")
     end
   end
+
+  def icon(name, **options)
+    lucide_icon(name, **options)
+  end
+
+  # Construct proper WAHA file URL from media URL
+  def waha_file_url(media_url)
+    return nil if media_url.blank?
+
+    # Extract filename from the media URL
+    # WAHA URLs are typically like: http://localhost:3000/api/files/false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA.oga
+    # or they might include session name like: http://localhost:3000/api/files/default/false_11111111111@c.us_AAAAAAAAAAAAAAAAAAAA.oga
+
+    # Remove the base URL and get the path
+    uri = URI(media_url)
+    path = uri.path
+
+    # Remove /api/files/ prefix
+    file_path = path.gsub(/^\/api\/files\//, '')
+
+    # Construct the correct URL for our proxy
+    "/api/files/#{file_path}"
+  end
 end

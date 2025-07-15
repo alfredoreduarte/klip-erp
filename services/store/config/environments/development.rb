@@ -75,4 +75,7 @@ Rails.application.configure do
 
   # Allow Docker service-to-service requests (e.g., WAHA -> Rails)
   config.hosts << "store"
+
+  # Use local disk for Active Storage in development
+  config.active_storage.service = :local
 end

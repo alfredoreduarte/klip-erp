@@ -73,7 +73,13 @@ class WahaWebhooksController < ApplicationController
   # Determine message_type when WAHA omits the `type` field (e.g., location)
   def infer_message_type(payload)
     return 'location' if payload['location'].present? || (payload['lat'].present? && payload['lng'].present?)
-    payload['type'].presence || 'text'
+
+    # Check for type in various locations in the payload
+    type = payload['type'] ||
+           payload.dig('_data', 'type') ||
+           payload.dig('text', 'type')
+
+    type.presence || 'text'
   end
 
   def handle_messages_upsert(data)

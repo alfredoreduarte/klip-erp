@@ -31,4 +31,33 @@ namespace :waha do
     end
     puts "Done."
   end
+
+  desc "Download media for existing messages that have media but no cached files (usage: rake waha:download_media)"
+  task :download_media => :environment do
+    puts "Finding messages with media that need downloading..."
+
+    # Find messages with media URLs but no cached media files
+    messages_with_media = Message.where("payload->>'mediaUrl' IS NOT NULL OR payload->'media'->>'url' IS NOT NULL")
+
+    puts "Found #{messages_with_media.count} messages with media URLs"
+
+    downloaded_count = 0
+    failed_count = 0
+
+    messages_with_media.find_each do |message|
+      next if message.media_files.any? # Skip if already downloaded
+
+      begin
+        DownloadMediaJob.perform_now(message.id)
+        downloaded_count += 1
+        print "." if downloaded_count % 10 == 0
+      rescue => e
+        failed_count += 1
+        puts "\nFailed to download media for message #{message.id}: #{e.message}"
+      end
+    end
+
+    puts "\nDownloaded: #{downloaded_count}, Failed: #{failed_count}"
+    puts "Done."
+  end
 end
