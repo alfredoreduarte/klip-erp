@@ -4,7 +4,11 @@
   <div class="whatsapp-header">
     <div class="whatsapp-header-avatar">
       <% if defined?(@waha_session) && @waha_session.present? %>
-        <%= @waha_session.name.first.upcase %>
+        <% if @waha_session.profile_pic_url.present? %>
+          <img src="<%= @waha_session.profile_pic_url %>" alt="session avatar" class="w-full h-full object-cover rounded-full" />
+        <% else %>
+          <%= @waha_session.name.first.upcase %>
+        <% end %>
       <% else %>
         C
       <% end %>
@@ -12,7 +16,7 @@
     <div class="whatsapp-header-info">
       <div class="whatsapp-header-name">
         <% if defined?(@waha_session) && @waha_session.present? %>
-          <%= @waha_session.name %> - Chats
+          <%= @waha_session.display_name %> - Chats
         <% else %>
           All Chats
         <% end %>

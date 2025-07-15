@@ -4,6 +4,8 @@ class ChatsController < ApplicationController
       @waha_session = WahaSession.find(params[:waha_session_id])
       # Refresh chats overview to ensure last_message_at is up-to-date without fetching every message
       @waha_session.sync_chats_overview!
+      # Refresh session profile picture
+      @waha_session.refresh_profile_picture!
       @chats = @waha_session.chats
     else
       # Refresh overview for all sessions (usually few) to keep timestamps fresh
@@ -56,6 +58,9 @@ class ChatsController < ApplicationController
 
     # Load all WAHA sessions so we can show them in the thin left-most sidebar
     @sessions = WahaSession.order(:name)
+
+    # Refresh profile pictures for all sessions
+    @sessions.each(&:refresh_profile_picture!)
 
     # Order messages chronologically using their actual sent time when available
     @messages = @chat.messages.order(Arel.sql("COALESCE(sent_at, created_at) ASC"))

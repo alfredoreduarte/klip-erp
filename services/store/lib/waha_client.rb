@@ -123,6 +123,19 @@ class WahaClient
     raise Error, e.message
   end
 
+  # Fetch session profile information.
+  # Returns a hash with keys :id, :name, :picture (may be nil if not available).
+  # WAHA endpoint: GET /api/{session}/profile
+  def session_profile(session: "default")
+    res = @conn.get("/api/#{session}/profile")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    # WAHA returns { id: "...", name: "...", picture: "url" } or { picture: null }
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
   # Fetch messages for a specific chat from WAHA.
   # Returns an array of message objects.
   # WAHA endpoint: GET /api/{session}/chats/{chatId}/messages

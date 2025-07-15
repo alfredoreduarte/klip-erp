@@ -15,6 +15,26 @@ class WahaSession < ApplicationRecord
     status.humanize
   end
 
+  # Refresh profile picture from WAHA
+  def refresh_profile_picture!
+    client = WahaClient.new
+    begin
+      profile = client.session_profile(session: name)
+      picture_url = profile[:picture] || profile["picture"]
+      # Always update with the latest value from WAHA, even if nil
+      update_column(:profile_pic_url, picture_url)
+    rescue WahaClient::Error => e
+      Rails.logger.warn "Failed to fetch profile picture for session #{name}: #{e.message}"
+    end
+  end
+
+  # Get display name for the session (WhatsApp profile name if available, otherwise session name)
+  def display_name
+    # For now, just return the session name
+    # In the future, we could store the WhatsApp profile name from the profile API
+    name
+  end
+
   # Fetch chats overview from WAHA and update local Chat records with
   # last_message_at and basic metadata (name, unread count, etc.).
   def sync_chats_overview!

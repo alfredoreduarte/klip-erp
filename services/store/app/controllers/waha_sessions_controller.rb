@@ -6,6 +6,8 @@ class WahaSessionsController < ApplicationController
   # GET /waha/sessions
   def index
     @sessions = WahaSession.order(:name)
+    # Refresh profile pictures for all sessions
+    @sessions.each(&:refresh_profile_picture!)
   end
 
   # POST /waha/sessions
@@ -20,6 +22,9 @@ class WahaSessionsController < ApplicationController
 
     # Start session on WAHA (creates if missing)
     result = WAHA.start_session(name: name)
+
+    # Refresh profile picture after session is started
+    waha_session.refresh_profile_picture!
 
     respond_to do |format|
       format.json { render json: result }

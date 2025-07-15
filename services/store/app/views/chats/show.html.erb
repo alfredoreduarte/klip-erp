@@ -5,8 +5,12 @@
       <div class="space-y-3 w-full px-2">
         <% @sessions.each do |session| %>
           <% active_session = defined?(@waha_session) && @waha_session&.id == session.id %>
-          <%= link_to waha_session_chats_path(session), class: "session-item #{'active' if active_session}" do %>
-            <span class="session-item-text"><%= session.name.first(2) %></span>
+          <%= link_to waha_session_chats_path(session), class: "session-item #{'active' if active_session}", title: session.display_name do %>
+            <% if session.profile_pic_url.present? %>
+              <img src="<%= session.profile_pic_url %>" alt="session avatar" class="w-full h-full object-cover rounded-full" />
+            <% else %>
+              <span class="session-item-text"><%= session.name.first(2) %></span>
+            <% end %>
           <% end %>
         <% end %>
       </div>
