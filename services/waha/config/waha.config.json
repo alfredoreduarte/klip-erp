@@ -15,7 +15,8 @@
     "format": "json"
   },
   "storage": {
-    "type": "memory"
+    "type": "file",
+    "path": "/app/media"
   },
   "security": {
     "cors": {

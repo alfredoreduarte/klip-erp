@@ -15,6 +15,7 @@ COPY scripts/ /app/scripts/
 RUN chmod +x /app/scripts/*.sh || true
 RUN chown -R 1000:1000 /app/config /app/scripts
 RUN mkdir -p /app/.sessions && chown -R 1000:1000 /app/.sessions
+RUN mkdir -p /app/media && chown -R 1000:1000 /app/media
 
 # Switch back to non-root user
 USER 1000
