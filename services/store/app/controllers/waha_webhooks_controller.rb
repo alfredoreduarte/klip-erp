@@ -79,6 +79,9 @@ class WahaWebhooksController < ApplicationController
            payload.dig('_data', 'type') ||
            payload.dig('text', 'type')
 
+    # Map 'ptt' (push-to-talk) to 'audio' for proper UI handling
+    type = 'audio' if type == 'ptt'
+
     type.presence || 'text'
   end
 

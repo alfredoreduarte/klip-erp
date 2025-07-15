@@ -141,28 +141,60 @@
         <% end %>
       </div>
 
-    <% when 'audio' %>
+    <% when 'audio', 'ptt' %>
       <div class="bubble-content">
         <% if message.media_file&.file&.attached? %>
-          <%= audio_tag message.media_file.file, controls: true, class: 'w-full' %>
+          <%= audio_tag message.media_file.file, controls: true %>
         <% else %>
           <% media_url = message.media_url %>
           <% if media_url.present? %>
             <% url = waha_file_url(media_url) %>
-            <%= audio_tag url, controls: true, class: 'w-full', onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+            <%= audio_tag url, controls: true, onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
             <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
               🎵 Audio (click to play)
               <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
               <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
             </div>
           <% else %>
-            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded">
-              🎵 Audio not available
-              <br><small class="text-xs text-gray-400">Media files are temporarily stored in WAHA and may be cleaned up</small>
+            <!-- Improved audio message UI when file is not available -->
+            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.793L4.5 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.5l3.883-3.793a1 1 0 011.617.793zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-900">Voice Message</span>
+                  <span class="text-xs text-gray-500">
+                    <% if message.payload.dig('_data', 'duration').present? %>
+                      <%= message.payload.dig('_data', 'duration') %>s
+                    <% else %>
+                      Audio
+                    <% end %>
+                  </span>
+                </div>
+                <div class="mt-1">
+                  <div class="flex items-center space-x-1">
+                    <div class="flex-1 bg-gray-200 rounded-full h-2">
+                      <div class="bg-gray-400 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500">0:00</span>
+                  </div>
+                </div>
+                <div class="mt-2 flex items-center space-x-2">
+                  <button class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" disabled>
+                    <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                  <span class="text-xs text-gray-500">Audio file not available</span>
+                </div>
+              </div>
             </div>
           <% end %>
         <% end %>
-        <% if message.body.present? %>
+        <% if message.body.present? && message.body != "[ptt]" %>
           <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
         <% end %>
       </div>

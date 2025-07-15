@@ -2,11 +2,19 @@ class DownloadMediaJob < ApplicationJob
   queue_as :default
 
   def perform(message_id)
+    puts "[DEBUG] DownloadMediaJob: Starting download for message \\#{message_id}"
     message = Message.find(message_id)
+    Rails.logger.info "DownloadMediaJob: Starting download for message #{message_id}"
 
     # Extract media URL from message payload
     media_url = extract_media_url(message.payload)
-    return unless media_url.present?
+    puts "[DEBUG] Extracted media URL: \\#{media_url}"
+    Rails.logger.info "DownloadMediaJob: Extracted media URL: #{media_url}"
+
+    unless media_url.present?
+      puts "[DEBUG] No media URL found, returning."
+      return
+    end
 
     Rails.logger.info "Downloading media for message #{message_id}: #{media_url}"
 
@@ -26,6 +34,7 @@ class DownloadMediaJob < ApplicationJob
       Rails.logger.info "WAHA response status: #{response.status}"
 
       if response.success?
+        puts "[DEBUG] WAHA response success, status: \\#{response.status}"
         # Create media file record
         filename = File.basename(file_path)
         media_file = message.media_files.find_or_initialize_by(filename: filename)
@@ -41,11 +50,15 @@ class DownloadMediaJob < ApplicationJob
         )
 
         media_file.save!
+        puts "[DEBUG] Successfully downloaded and stored media for message \\#{message_id}"
         Rails.logger.info "Successfully downloaded and stored media for message #{message_id}"
       else
+        puts "[DEBUG] WAHA response failed, status: \\#{response.status}"
         Rails.logger.warn "Failed to download media for message #{message_id}: HTTP #{response.status}"
+        Rails.logger.warn "Response body: #{response.body}"
       end
     rescue => e
+      puts "[DEBUG] Exception: \\#{e.message}"
       Rails.logger.error "Error downloading media for message #{message_id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
     end
