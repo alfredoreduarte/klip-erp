@@ -105,4 +105,21 @@ class Chat < ApplicationRecord
   def latest_message_timestamp
     latest_message&.sent_at || latest_message&.created_at || last_message_at
   end
+
+  # Broadcasts updates to chat list UIs so they reflect new messages and metadata in real-time.
+  # The approach removes any existing list item for this chat (if present) and then prepends
+  # the freshly rendered item to the chats list so ordering is kept by latest activity.
+  def broadcast_list_item
+    # Derive the same DOM id used in the chat list partial
+    list_item_dom_id = ActionView::RecordIdentifier.dom_id(self, :list_item)
+
+    # Remove existing list item (if any) so we don't end up with duplicates after prepending.
+    broadcast_remove_to "chats", target: list_item_dom_id
+
+    # Prepend the updated list item to the top of the chat lists subscribing to the `chats` stream.
+    broadcast_prepend_later_to "chats",
+                              target: "chats_list",
+                              partial: "chats/chat_list_item",
+                              locals: { chat: self }
+  end
 end

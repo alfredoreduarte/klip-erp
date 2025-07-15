@@ -27,7 +27,8 @@
   </div>
 
   <!-- Chat List -->
-  <div class="flex-1 overflow-y-auto bg-white">
+  <div id="chats_list" data-controller="chat-list" class="flex-1 overflow-y-auto bg-white">
+    <%= turbo_stream_from "chats" %>
     <% if @chats.any? %>
       <% @chats.each do |chat| %>
         <%= render 'chat_list_item', chat: chat %>

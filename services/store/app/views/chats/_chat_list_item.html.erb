@@ -2,7 +2,7 @@
 <% active = defined?(@chat) && @chat.id == chat.id %>
 <%# Fetch the newest message via model helper to keep view slim %>
 <% last_message = chat.latest_message %>
-<%= link_to chat_path(chat), class: "group chat-list-item #{'active' if active}", data: { turbo_prefetch: false } do %>
+<%= link_to chat_path(chat), id: dom_id(chat, :list_item), class: "group chat-list-item #{'active' if active}", data: { turbo_prefetch: false, "chat-list-target": "item" } do %>
   <div class="chat-avatar overflow-hidden">
     <% if chat.profile_pic_url.present? %>
       <img src="<%= chat.profile_pic_url %>" alt="avatar" class="w-full h-full object-cover rounded-full" />

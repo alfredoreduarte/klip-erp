@@ -8,6 +8,19 @@ fi
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
   ./bin/rails db:prepare
+
+  # In development we rely on esbuild --watch to produce /app/assets/builds/*.js and *.css.
+  # If we have leftover digested files from a previous `assets:precompile` run inside
+  # public/assets, Rails will keep serving those **instead** of the fresh build output,
+  # which means new JavaScript changes won’t reach the browser.
+  #
+  # To avoid stale assets, wipe public/assets on every container boot when running
+  # in development. In production the variable is "production" and the precompiled
+  # digests are exactly what we want, so we leave them intact.
+  if [ "${RAILS_ENV}" = "development" ]; then
+    echo "[entrypoint] Removing stale digested assets from public/assets (development mode)"
+    rm -rf public/assets
+  fi
 fi
 
 exec "${@}"

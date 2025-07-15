@@ -52,7 +52,8 @@
       </div>
 
       <!-- Chat list -->
-      <div class="overflow-y-auto flex-1">
+      <div id="chats_list" data-controller="chat-list" class="overflow-y-auto flex-1">
+        <%= turbo_stream_from "chats" %>
         <%= render partial: "chats/chat_list_item", collection: @chats, as: :chat %>
       </div>
     </section>
@@ -96,7 +97,8 @@
 
       <!-- Messages scroller -->
       <turbo-frame id="chat_<%= @chat.id %>_messages" class="flex-1 overflow-y-auto p-6" target="_top">
-        <%# Subscribe to presence updates for this chat %>
+        <%# Subscribe to message and presence updates for this chat %>
+        <%= turbo_stream_from @chat %>
         <%= turbo_stream_from "chat_presence_#{@chat.id}" %>
         <div id="messages_scroller" class="space-y-2">
           <% grouped_messages = @messages.group_by { |m| (m.sent_at || m.created_at).to_date } %>

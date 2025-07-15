@@ -17,5 +17,8 @@ class Message < ApplicationRecord
 
   def update_chat_last_message_timestamp
     chat.touch_last_message!(sent_at || created_at)
+
+    # Trigger a broadcast so any open chat lists refresh and reorder.
+    chat.broadcast_list_item
   end
 end
