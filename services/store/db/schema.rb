@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_15_163119) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_15_184021) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -125,6 +125,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_15_163119) do
     t.datetime "updated_at", null: false
     t.bigint "waha_session_id"
     t.string "profile_pic_url"
+    t.datetime "pinned_at"
+    t.index ["pinned_at"], name: "index_chats_on_pinned_at"
     t.index ["wa_id"], name: "index_chats_on_wa_id", unique: true
     t.index ["waha_session_id"], name: "index_chats_on_waha_session_id"
   end
@@ -194,6 +196,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_15_163119) do
     t.index ["message_id"], name: "index_media_files_on_message_id"
   end
 
+  create_table "message_reactions", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.string "reaction", null: false
+    t.string "user_wa_id", null: false, comment: "WhatsApp user ID who reacted"
+    t.datetime "created_at", null: false
+    t.index ["message_id", "user_wa_id"], name: "index_message_reactions_on_message_id_and_user_wa_id", unique: true
+    t.index ["message_id"], name: "index_message_reactions_on_message_id"
+    t.index ["user_wa_id"], name: "index_message_reactions_on_user_wa_id"
+  end
+
   create_table "messages", force: :cascade do |t|
     t.bigint "chat_id", null: false
     t.string "wa_message_id", null: false, comment: "WhatsApp message ID"
@@ -205,8 +217,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_15_163119) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "read_at"
+    t.bigint "reply_to_message_id"
+    t.datetime "pinned_at"
     t.index ["chat_id"], name: "index_messages_on_chat_id"
     t.index ["read_at"], name: "index_messages_on_read_at"
+    t.index ["reply_to_message_id"], name: "index_messages_on_reply_to_message_id"
     t.index ["wa_message_id"], name: "index_messages_on_wa_message_id", unique: true
   end
 
@@ -515,7 +530,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_15_163119) do
   add_foreign_key "chats", "waha_sessions"
   add_foreign_key "inventory_lots", "product_variants"
   add_foreign_key "media_files", "messages"
+  add_foreign_key "message_reactions", "messages"
   add_foreign_key "messages", "chats"
+  add_foreign_key "messages", "messages", column: "reply_to_message_id"
   add_foreign_key "order_attributions", "marketing_campaigns"
   add_foreign_key "order_attributions", "orders"
   add_foreign_key "order_items", "orders"
