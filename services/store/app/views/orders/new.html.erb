@@ -1,0 +1,559 @@
+<div class="min-h-screen bg-gray-50 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Nuevo Pedido</h1>
+      <nav class="text-sm text-gray-500 mt-2">
+        <%= link_to "Home", root_path, class: "hover:text-blue-600" %> > 
+        <%= link_to "Pedidos", orders_path, class: "hover:text-blue-600" %> > 
+        Nuevo
+      </nav>
+    </div>
+
+    <%= form_with model: @order, local: true, class: "space-y-6", id: "order-form" do |f| %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Main Form Area -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Cart Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center">
+                <span class="text-2xl mr-2">🛒</span>
+                <h2 class="text-xl font-semibold text-gray-900">Carrito</h2>
+              </div>
+            </div>
+
+            <!-- Product Search -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Seleccionar producto
+              </label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="product-search" 
+                  placeholder="Buscar productos..."
+                  class="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </button>
+              </div>
+              <div id="product-search-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden mt-1 max-h-80 overflow-y-auto"></div>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cart-items" class="space-y-4">
+              <!-- Cart items will be added here dynamically -->
+            </div>
+
+            <!-- Add Product Button -->
+            <button 
+              type="button" 
+              id="add-product-btn"
+              class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
+            >
+              AGREGAR PRODUCTO
+            </button>
+
+            <!-- Customer Notes -->
+            <div class="mt-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Pedidos del cliente
+              </label>
+              <%= f.text_area :customer_notes, 
+                  placeholder: "Grabados, personalizaciones, empaque de regalo, dedicatorias, etc",
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  rows: 3 %>
+            </div>
+
+            <!-- Gift Wrap Option -->
+            <div class="mt-4">
+              <label class="flex items-center">
+                <%= f.check_box :gift_wrap, class: "mr-2" %>
+                <span class="text-sm font-medium text-gray-700">Envolver para regalo</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Customer Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">👤</span>
+              <h2 class="text-xl font-semibold text-gray-900">Comprador</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                <%= f.text_field :customer_name, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                <%= f.text_field :customer_surname, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <%= f.telephone_field :customer_phone, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Forma de pago</label>
+              <%= f.select :payment_method, 
+                  options_for_select([
+                    ['--', ''],
+                    ['Efectivo', 'cash'],
+                    ['Tarjeta', 'card'],
+                    ['Transferencia', 'transfer']
+                  ]), 
+                  {}, 
+                  { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+            </div>
+
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Comprobante número</label>
+              <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="mt-4">
+              <label class="flex items-center">
+                <input type="checkbox" class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Pagado</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Shipping Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">🚚</span>
+              <h2 class="text-xl font-semibold text-gray-900">Envío</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option>--</option>
+                  <option>Delivery</option>
+                  <option>Pickup</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Precio de envío</label>
+                <input 
+                  type="number" 
+                  id="shipping-cost"
+                  value="0.0"
+                  step="0.01"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Courier</label>
+                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option>Ninguno</option>
+                  <option>Express</option>
+                  <option>Standard</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                <%= f.text_field :shipping_address, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+                <%= f.select :shipping_city, 
+                    options_for_select([
+                      ['', ''],
+                      ['Asunción', 'Asunción'],
+                      ['Ciudad del Este', 'Ciudad del Este'],
+                      ['Encarnación', 'Encarnación'],
+                      ['Pedro Juan Caballero', 'Pedro Juan Caballero'],
+                      ['Concepción', 'Concepción']
+                    ]), 
+                    {}, 
+                    { 
+                      class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                      id: "shipping-city"
+                    } %>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Google map</label>
+              <input 
+                type="url" 
+                id="google-maps-url"
+                placeholder="Pegar enlace de Google Maps"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+            </div>
+
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Comentarios para el courier</label>
+              <%= f.text_area :shipping_notes, 
+                  placeholder: "Nota para el env envío (horarios, etc)",
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  rows: 2 %>
+            </div>
+          </div>
+
+          <!-- Delivery Schedule Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">📅</span>
+              <h2 class="text-xl font-semibold text-gray-900">Fecha/Hora</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="flex items-center mb-2">
+                  <input type="radio" name="delivery_option" value="date" class="mr-2">
+                  <span class="text-sm font-medium text-gray-700">📅 entregar en fecha</span>
+                </label>
+              </div>
+
+              <div>
+                <label class="flex items-center mb-2">
+                  <input type="radio" name="delivery_option" value="time_range" class="mr-2">
+                  <span class="text-sm font-medium text-gray-700">⏰ entre la hora</span>
+                </label>
+              </div>
+
+              <div>
+                <label class="flex items-center mb-2">
+                  <input type="radio" name="delivery_option" value="flexible" class="mr-2">
+                  <span class="text-sm font-medium text-gray-700">⏱️ y hasta la hora</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option>Cualquier hora</option>
+                  <option>9:00</option>
+                  <option>10:00</option>
+                  <option>11:00</option>
+                  <option>12:00</option>
+                  <option>13:00</option>
+                  <option>14:00</option>
+                  <option>15:00</option>
+                  <option>16:00</option>
+                  <option>17:00</option>
+                  <option>18:00</option>
+                </select>
+              </div>
+
+              <div>
+                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <option>Cualquier hora</option>
+                  <option>9:00</option>
+                  <option>10:00</option>
+                  <option>11:00</option>
+                  <option>12:00</option>
+                  <option>13:00</option>
+                  <option>14:00</option>
+                  <option>15:00</option>
+                  <option>16:00</option>
+                  <option>17:00</option>
+                  <option>18:00</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <p class="text-sm text-gray-600">
+                Dejar sin fecha para procesar en la rutina diaria normal.
+              </p>
+            </div>
+          </div>
+
+          <!-- Additional Sections -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="border-l-4 border-blue-500 pl-4">
+              <h3 class="text-lg font-semibold text-gray-900">📄 Factura</h3>
+              <div class="mt-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Razón social</label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">RUC</label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+              <div class="mt-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Factura Pendiente</label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+
+            <div class="border-l-4 border-green-500 pl-4 mt-6">
+              <h3 class="text-lg font-semibold text-gray-900">👤 Recibe Otra Persona?</h3>
+              <p class="text-sm text-gray-600 mt-1">
+                Add fields for alternate recipient if needed
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="lg:col-span-1">
+          <div class="bg-white shadow rounded-lg p-6 sticky top-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">💰</span>
+              <h2 class="text-xl font-semibold text-gray-900">Resumen</h2>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Subtotal</span>
+                <span id="subtotal">₲ 0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Envío</span>
+                <span id="shipping-total">₲ 0</span>
+              </div>
+              <hr>
+              <div class="flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span id="total">₲ 0</span>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              class="w-full mt-6 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition duration-200 font-semibold"
+            >
+              GUARDAR
+            </button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- JavaScript for dynamic functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let cart = [];
+  let searchTimeout;
+
+  // Product search functionality
+  const productSearch = document.getElementById('product-search');
+  const searchResults = document.getElementById('product-search-results');
+
+  productSearch.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    
+    if (query.length < 2) {
+      searchResults.classList.add('hidden');
+      return;
+    }
+
+    searchTimeout = setTimeout(() => {
+      fetch(`/orders/search_products?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(products => {
+          displaySearchResults(products);
+        })
+        .catch(error => console.error('Search error:', error));
+    }, 300);
+  });
+
+  function displaySearchResults(products) {
+    if (products.length === 0) {
+      searchResults.innerHTML = '<div class="p-3 text-gray-500">No products found</div>';
+    } else {
+      searchResults.innerHTML = products.map(product => `
+        <div class="p-3 hover:bg-gray-50 cursor-pointer border-b flex items-center space-x-3" onclick="addToCart(${product.id}, '${product.name}', ${product.price}, '${product.thumbnail_url}', '${product.category}')">
+          <img src="${product.thumbnail_url}" alt="${product.name}" class="w-12 h-12 object-cover rounded-md border">
+          <div class="flex-1">
+            <div class="font-medium text-sm">${product.name}</div>
+            <div class="text-xs text-gray-600">₲${product.price} - Stock: ${product.inventory}</div>
+            <div class="text-xs text-blue-600">${product.category}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    searchResults.classList.remove('hidden');
+  }
+
+  // Add product to cart
+  window.addToCart = function(productId, productName, price, thumbnailUrl, category) {
+    const existingItem = cart.find(item => item.productId === productId);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({
+        productId: productId,
+        productName: productName,
+        price: price,
+        quantity: 1,
+        thumbnailUrl: thumbnailUrl,
+        category: category
+      });
+    }
+    
+    updateCartDisplay();
+    searchResults.classList.add('hidden');
+    productSearch.value = '';
+  };
+
+  function updateCartDisplay() {
+    const cartItems = document.getElementById('cart-items');
+    
+    cartItems.innerHTML = cart.map((item, index) => `
+      <div class="flex items-center p-4 border rounded-lg space-x-3">
+        <img src="${item.thumbnailUrl}" alt="${item.productName}" class="w-16 h-16 object-cover rounded-md border">
+        <div class="flex-1">
+          <div class="font-medium text-sm">${item.productName}</div>
+          <div class="text-sm text-gray-600">₲${item.price}</div>
+          <div class="text-xs text-blue-600">${item.category}</div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <input 
+            type="number" 
+            value="${item.quantity}" 
+            min="1" 
+            class="w-16 px-2 py-1 border rounded text-center"
+            onchange="updateQuantity(${index}, this.value)"
+          >
+          <div class="text-right">
+            <div class="font-medium text-sm">₲${(item.price * item.quantity).toLocaleString()}</div>
+            <button 
+              type="button" 
+              onclick="removeFromCart(${index})"
+              class="text-red-600 hover:text-red-800 text-xs"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    
+    updateTotals();
+  }
+
+  window.updateQuantity = function(index, quantity) {
+    cart[index].quantity = parseInt(quantity);
+    updateCartDisplay();
+  };
+
+  window.removeFromCart = function(index) {
+    cart.splice(index, 1);
+    updateCartDisplay();
+  };
+
+  function updateTotals() {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shippingCost = parseFloat(document.getElementById('shipping-cost').value) || 0;
+    const total = subtotal + shippingCost;
+
+    document.getElementById('subtotal').textContent = `₲${subtotal.toLocaleString()}`;
+    document.getElementById('shipping-total').textContent = `₲${shippingCost.toLocaleString()}`;
+    document.getElementById('total').textContent = `₲${total.toLocaleString()}`;
+  }
+
+  // Shipping cost calculation
+  const shippingCity = document.getElementById('shipping-city');
+  shippingCity.addEventListener('change', function() {
+    const city = this.value;
+    if (city) {
+      fetch('/orders/calculate_shipping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ city: city })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('shipping-cost').value = data.cost;
+        updateTotals();
+      })
+      .catch(error => console.error('Shipping calculation error:', error));
+    }
+  });
+
+  // Google Maps URL parsing
+  const googleMapsUrl = document.getElementById('google-maps-url');
+  googleMapsUrl.addEventListener('blur', function() {
+    const url = this.value.trim();
+    if (url && url.includes('google.com/maps')) {
+      fetch('/orders/parse_google_maps_link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ url: url })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.address) {
+          document.querySelector('#order_shipping_address').value = data.address;
+          if (data.city) {
+            document.querySelector('#order_shipping_city').value = data.city;
+            // Trigger city change to calculate shipping
+            shippingCity.dispatchEvent(new Event('change'));
+          }
+        }
+      })
+      .catch(error => console.error('Google Maps parsing error:', error));
+    }
+  });
+
+  // Update shipping cost when manually changed
+  document.getElementById('shipping-cost').addEventListener('input', updateTotals);
+
+  // Click outside to hide search results
+  document.addEventListener('click', function(e) {
+    if (!productSearch.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.classList.add('hidden');
+    }
+  });
+
+  // Handle form submission
+  const orderForm = document.getElementById('order-form');
+  orderForm.addEventListener('submit', function(e) {
+    // Add cart items as hidden input
+    const cartInput = document.createElement('input');
+    cartInput.type = 'hidden';
+    cartInput.name = 'cart_items';
+    cartInput.value = JSON.stringify(cart);
+    
+    // Also add shipping amount
+    const shippingInput = document.createElement('input');
+    shippingInput.type = 'hidden';
+    shippingInput.name = 'order[shipping_amount]';
+    shippingInput.value = document.getElementById('shipping-cost').value || '0';
+    
+    orderForm.appendChild(cartInput);
+    orderForm.appendChild(shippingInput);
+  });
+});
+</script>

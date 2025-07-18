@@ -1,6 +1,7 @@
 class ProductVariant < ApplicationRecord
   belongs_to :product
   has_many :inventory_lots, dependent: :destroy
+  has_one_attached :image
   has_many :order_items, dependent: :restrict_with_exception
   has_many :cart_items, dependent: :destroy
   has_many :sourcing_order_items, dependent: :restrict_with_exception
@@ -151,7 +152,16 @@ class ProductVariant < ApplicationRecord
   end
   
   def display_name
-    name.present? ? name : "#{product.name} - #{sku}"
+    name.present? ? "#{product.name} - #{name}" : "#{product.name} - #{sku}"
+  end
+  
+  def thumbnail_url
+    if image.attached?
+      Rails.application.routes.url_helpers.rails_blob_path(image, only_path: true)
+    else
+      # Fall back to product image or placeholder
+      product.thumbnail_url
+    end
   end
   
   private

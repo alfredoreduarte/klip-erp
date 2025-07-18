@@ -44,6 +44,15 @@ Rails.application.routes.draw do
   # Proxy WAHA file requests to the WAHA service
   get "/api/files/*path", to: "waha_files#proxy"
 
+  # Orders management
+  resources :orders do
+    collection do
+      get :search_products
+      post :calculate_shipping
+      post :parse_google_maps_link
+    end
+  end
+
   # Defines the root path route ("/")
   root "home#index"
 end
