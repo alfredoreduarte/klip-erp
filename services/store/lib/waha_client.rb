@@ -41,7 +41,7 @@ class WahaClient
         webhooks: [
           {
             url: webhook_url,
-            events: ["message"]
+            events: ["message", "message.pin", "message.unpin"]
           }
         ],
         metadata: metadata.presence
@@ -154,6 +154,39 @@ class WahaClient
   # WAHA endpoint: GET /api/{session}/chats/overview
   def chats_overview(session: "default")
     res = @conn.get("/api/#{session}/chats/overview")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Fetch a single message by ID
+  # WAHA endpoint: GET /api/{session}/chats/{chatId}/messages/{messageId}
+  def get_message(chat_id:, message_id:, session: "default")
+    res = @conn.get("/api/#{session}/chats/#{chat_id}/messages/#{message_id}")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Pin a message in a chat
+  # WAHA endpoint: POST /api/{session}/chats/{chatId}/messages/{messageId}/pin
+  # Duration options: 86400 (24 hours), 604800 (7 days), 2592000 (30 days)
+  def pin_message(chat_id:, message_id:, session: "default", duration: 86400)
+    post("/api/#{session}/chats/#{chat_id}/messages/#{message_id}/pin", {
+      duration: duration
+    })
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Unpin a message in a chat
+  # WAHA endpoint: POST /api/{session}/chats/{chatId}/messages/{messageId}/unpin
+  def unpin_message(chat_id:, message_id:, session: "default")
+    res = @conn.post("/api/#{session}/chats/#{chat_id}/messages/#{message_id}/unpin")
     raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
 
     res.body
