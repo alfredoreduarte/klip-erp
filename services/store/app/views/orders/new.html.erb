@@ -13,9 +13,117 @@
     <%= form_with model: @order, local: true, class: "space-y-6", id: "order-form" do |f| %>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Main Form Area -->
-        <div class="lg:col-span-2 space-y-6">
+        <!-- Left Column: Status, Payment, Customer -->
+        <div class="lg:col-span-1 space-y-6">
           
+          <!-- Status Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">📋</span>
+              <h2 class="text-xl font-semibold text-gray-900">Estado</h2>
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+              <%= f.select :status, 
+                  options_for_select([
+                    ['Carrito', 'pending']
+                  ]), 
+                  {}, 
+                  { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Forma de pago</label>
+              <%= f.select :payment_method, 
+                  options_for_select([
+                    ['--', ''],
+                    ['Efectivo', 'cash'],
+                    ['Tarjeta', 'card'],
+                    ['Transferencia', 'transfer']
+                  ]), 
+                  {}, 
+                  { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Comprobante número</label>
+              <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="mb-4">
+              <label class="flex items-center">
+                <input type="checkbox" class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Pagado</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Customer Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">👤</span>
+              <h2 class="text-xl font-semibold text-gray-900">Comprador</h2>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                <%= f.text_field :customer_name, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                <%= f.text_field :customer_surname, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <%= f.telephone_field :customer_phone, 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">📄</span>
+              <h2 class="text-xl font-semibold text-gray-900">Factura</h2>
+            </div>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Razón social</label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">RUC</label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Factura Pendiente</label>
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipient Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center mb-4">
+              <span class="text-2xl mr-2">👥</span>
+              <h2 class="text-xl font-semibold text-gray-900">Recibe Otra Persona?</h2>
+            </div>
+            <p class="text-sm text-gray-600">
+              (Optional recipient fields can be added here)
+            </p>
+          </div>
+        </div>
+
+        <!-- Middle Column: Cart Section -->
+        <div class="lg:col-span-1 space-y-6">
           <!-- Cart Section -->
           <div class="bg-white shadow rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
@@ -76,60 +184,6 @@
               <label class="flex items-center">
                 <%= f.check_box :gift_wrap, class: "mr-2" %>
                 <span class="text-sm font-medium text-gray-700">Envolver para regalo</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Customer Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">👤</span>
-              <h2 class="text-xl font-semibold text-gray-900">Comprador</h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                <%= f.text_field :customer_name, 
-                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                <%= f.text_field :customer_surname, 
-                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-              </div>
-
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                <%= f.telephone_field :customer_phone, 
-                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-              </div>
-            </div>
-
-            <!-- Payment Method -->
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Forma de pago</label>
-              <%= f.select :payment_method, 
-                  options_for_select([
-                    ['--', ''],
-                    ['Efectivo', 'cash'],
-                    ['Tarjeta', 'card'],
-                    ['Transferencia', 'transfer']
-                  ]), 
-                  {}, 
-                  { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
-            </div>
-
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Comprobante número</label>
-              <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-
-            <div class="mt-4">
-              <label class="flex items-center">
-                <input type="checkbox" class="mr-2">
-                <span class="text-sm font-medium text-gray-700">Pagado</span>
               </label>
             </div>
           </div>
@@ -288,31 +342,6 @@
             </div>
           </div>
 
-          <!-- Additional Sections -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="border-l-4 border-blue-500 pl-4">
-              <h3 class="text-lg font-semibold text-gray-900">📄 Factura</h3>
-              <div class="mt-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Razón social</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-              <div class="mt-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">RUC</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-              <div class="mt-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Factura Pendiente</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-            </div>
-
-            <div class="border-l-4 border-green-500 pl-4 mt-6">
-              <h3 class="text-lg font-semibold text-gray-900">👤 Recibe Otra Persona?</h3>
-              <p class="text-sm text-gray-600 mt-1">
-                Add fields for alternate recipient if needed
-              </p>
-            </div>
-          </div>
         </div>
 
         <!-- Summary Section -->
