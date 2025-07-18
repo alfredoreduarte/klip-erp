@@ -31,7 +31,7 @@
   </div>
 
   <!-- Chat List -->
-  <div id="chats_list" data-controller="chat-list" class="flex-1 overflow-y-auto bg-white">
+  <div id="chats_list" data-controller="chat-list" class="flex-1 overflow-y-auto bg-white space-y-0">
     <%= turbo_stream_from "chats" %>
     <% if @chats.any? %>
       <% @chats.each do |chat| %>
