@@ -11,20 +11,20 @@
     </div>
 
     <%= form_with model: @order, local: true, class: "space-y-6", id: "order-form" do |f| %>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         
         <!-- Left Column: Status, Payment, Customer -->
-        <div class="lg:col-span-1 space-y-6">
+        <div class="md:col-span-1 space-y-4">
           
           <!-- Status Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">📋</span>
-              <h2 class="text-xl font-semibold text-gray-900">Estado</h2>
+          <div class="bg-white shadow-sm border rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">📋</span>
+              <h2 class="text-lg font-semibold text-gray-900">Estado</h2>
             </div>
             
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Estado</label>
               <%= f.select :status, 
                   options_for_select([
                     ['Carrito', 'pending']
@@ -33,8 +33,8 @@
                   { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
             </div>
 
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Forma de pago</label>
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Forma de pago</label>
               <%= f.select :payment_method, 
                   options_for_select([
                     ['--', ''],
@@ -46,41 +46,41 @@
                   { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
             </div>
 
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Comprobante número</label>
-              <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Comprobante número</label>
+              <input type="text" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
               <label class="flex items-center">
                 <input type="checkbox" class="mr-2">
-                <span class="text-sm font-medium text-gray-700">Pagado</span>
+                <span class="text-xs font-medium text-gray-700">Pagado</span>
               </label>
             </div>
           </div>
 
           <!-- Customer Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">👤</span>
-              <h2 class="text-xl font-semibold text-gray-900">Comprador</h2>
+          <div class="bg-white shadow-sm border rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">👤</span>
+              <h2 class="text-lg font-semibold text-gray-900">Comprador</h2>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Nombre</label>
                 <%= f.text_field :customer_name, 
                     class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Apellido</label>
                 <%= f.text_field :customer_surname, 
                     class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Teléfono</label>
                 <%= f.telephone_field :customer_phone, 
                     class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
               </div>
@@ -88,33 +88,33 @@
           </div>
 
           <!-- Invoice Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">📄</span>
-              <h2 class="text-xl font-semibold text-gray-900">Factura</h2>
+          <div class="bg-white shadow-sm border rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">📄</span>
+              <h2 class="text-lg font-semibold text-gray-900">Factura</h2>
             </div>
             
-            <div class="space-y-4">
+            <div class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Razón social</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Razón social</label>
+                <input type="text" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">RUC</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-xs font-medium text-gray-700 mb-1">RUC</label>
+                <input type="text" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Factura Pendiente</label>
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Factura Pendiente</label>
+                <input type="text" class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
               </div>
             </div>
           </div>
 
           <!-- Recipient Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">👥</span>
-              <h2 class="text-xl font-semibold text-gray-900">Recibe Otra Persona?</h2>
+          <div class="bg-white shadow-sm border rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">👥</span>
+              <h2 class="text-lg font-semibold text-gray-900">Recibe Otra Persona?</h2>
             </div>
             <p class="text-sm text-gray-600">
               (Optional recipient fields can be added here)
@@ -123,19 +123,19 @@
         </div>
 
         <!-- Middle Column: Cart Section -->
-        <div class="lg:col-span-1 space-y-6">
+        <div class="md:col-span-2 space-y-4">
           <!-- Cart Section -->
-          <div class="bg-white shadow rounded-lg p-6">
+          <div class="bg-white shadow-sm border rounded-lg p-4">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center">
-                <span class="text-2xl mr-2">🛒</span>
-                <h2 class="text-xl font-semibold text-gray-900">Carrito</h2>
+                <span class="text-lg mr-2">🛒</span>
+                <h2 class="text-lg font-semibold text-gray-900">Carrito</h2>
               </div>
             </div>
 
             <!-- Product Search -->
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">
                 Seleccionar producto
               </label>
               <div class="relative">
@@ -143,7 +143,7 @@
                   type="text" 
                   id="product-search" 
                   placeholder="Buscar productos..."
-                  class="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full pl-3 pr-10 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
                 <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +155,7 @@
             </div>
 
             <!-- Cart Items -->
-            <div id="cart-items" class="space-y-4">
+            <div id="cart-items" class="space-y-3">
               <!-- Cart items will be added here dynamically -->
             </div>
 
@@ -163,42 +163,42 @@
             <button 
               type="button" 
               id="add-product-btn"
-              class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
+              class="w-full mt-3 bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition duration-200 text-sm"
             >
               AGREGAR PRODUCTO
             </button>
 
             <!-- Customer Notes -->
-            <div class="mt-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="mt-4">
+              <label class="block text-xs font-medium text-gray-700 mb-1">
                 Pedidos del cliente
               </label>
               <%= f.text_area :customer_notes, 
                   placeholder: "Grabados, personalizaciones, empaque de regalo, dedicatorias, etc",
-                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
                   rows: 3 %>
             </div>
 
             <!-- Gift Wrap Option -->
-            <div class="mt-4">
+            <div class="mt-3">
               <label class="flex items-center">
                 <%= f.check_box :gift_wrap, class: "mr-2" %>
-                <span class="text-sm font-medium text-gray-700">Envolver para regalo</span>
+                <span class="text-xs font-medium text-gray-700">Envolver para regalo</span>
               </label>
             </div>
           </div>
 
           <!-- Shipping Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">🚚</span>
-              <h2 class="text-xl font-semibold text-gray-900">Envío</h2>
+          <div class="bg-white shadow-sm border rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">🚚</span>
+              <h2 class="text-lg font-semibold text-gray-900">Envío</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+                <select class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                   <option>--</option>
                   <option>Delivery</option>
                   <option>Pickup</option>
@@ -206,19 +206,19 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Precio de envío</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Precio de envío</label>
                 <input 
                   type="number" 
                   id="shipping-cost"
                   value="0.0"
                   step="0.01"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Courier</label>
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Courier</label>
+                <select class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                   <option>Ninguno</option>
                   <option>Express</option>
                   <option>Standard</option>
@@ -226,15 +226,15 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Dirección</label>
                 <%= f.text_field :shipping_address, 
                     class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Ciudad</label>
                 <%= f.select :shipping_city, 
                     options_for_select([
                       ['', ''],
@@ -246,64 +246,64 @@
                     ]), 
                     {}, 
                     { 
-                      class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                      class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
                       id: "shipping-city"
                     } %>
               </div>
             </div>
 
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Google map</label>
+            <div class="mt-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Google map</label>
               <input 
                 type="url" 
                 id="google-maps-url"
                 placeholder="Pegar enlace de Google Maps"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >
             </div>
 
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Comentarios para el courier</label>
+            <div class="mt-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Comentarios para el courier</label>
               <%= f.text_area :shipping_notes, 
                   placeholder: "Nota para el env envío (horarios, etc)",
-                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
                   rows: 2 %>
             </div>
           </div>
 
           <!-- Delivery Schedule Section -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">📅</span>
-              <h2 class="text-xl font-semibold text-gray-900">Fecha/Hora</h2>
+          <div class="bg-white shadow-sm border rounded-lg p-4">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">📅</span>
+              <h2 class="text-lg font-semibold text-gray-900">Fecha/Hora</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label class="flex items-center mb-2">
                   <input type="radio" name="delivery_option" value="date" class="mr-2">
-                  <span class="text-sm font-medium text-gray-700">📅 entregar en fecha</span>
+                  <span class="text-xs font-medium text-gray-700">📅 entregar en fecha</span>
                 </label>
               </div>
 
               <div>
                 <label class="flex items-center mb-2">
                   <input type="radio" name="delivery_option" value="time_range" class="mr-2">
-                  <span class="text-sm font-medium text-gray-700">⏰ entre la hora</span>
+                  <span class="text-xs font-medium text-gray-700">⏰ entre la hora</span>
                 </label>
               </div>
 
               <div>
                 <label class="flex items-center mb-2">
                   <input type="radio" name="delivery_option" value="flexible" class="mr-2">
-                  <span class="text-sm font-medium text-gray-700">⏱️ y hasta la hora</span>
+                  <span class="text-xs font-medium text-gray-700">⏱️ y hasta la hora</span>
                 </label>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
               <div>
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                   <option>Cualquier hora</option>
                   <option>9:00</option>
                   <option>10:00</option>
@@ -319,7 +319,7 @@
               </div>
 
               <div>
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                   <option>Cualquier hora</option>
                   <option>9:00</option>
                   <option>10:00</option>
@@ -335,7 +335,7 @@
               </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-3">
               <p class="text-sm text-gray-600">
                 Dejar sin fecha para procesar en la rutina diaria normal.
               </p>
@@ -345,24 +345,24 @@
         </div>
 
         <!-- Summary Section -->
-        <div class="lg:col-span-1">
-          <div class="bg-white shadow rounded-lg p-6 sticky top-6">
-            <div class="flex items-center mb-4">
-              <span class="text-2xl mr-2">💰</span>
-              <h2 class="text-xl font-semibold text-gray-900">Resumen</h2>
+        <div class="md:col-span-1">
+          <div class="bg-white shadow-sm border rounded-lg p-4 sticky top-6">
+            <div class="flex items-center mb-3">
+              <span class="text-lg mr-2">💰</span>
+              <h2 class="text-lg font-semibold text-gray-900">Resumen</h2>
             </div>
 
-            <div class="space-y-3">
-              <div class="flex justify-between">
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Subtotal</span>
                 <span id="subtotal">₲ 0</span>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Envío</span>
                 <span id="shipping-total">₲ 0</span>
               </div>
-              <hr>
-              <div class="flex justify-between font-bold text-lg">
+              <hr class="my-2">
+              <div class="flex justify-between font-bold">
                 <span>Total</span>
                 <span id="total">₲ 0</span>
               </div>
@@ -370,7 +370,7 @@
 
             <button 
               type="submit" 
-              class="w-full mt-6 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition duration-200 font-semibold"
+              class="w-full mt-4 bg-green-600 text-white py-2 px-3 rounded-md hover:bg-green-700 transition duration-200 font-medium text-sm"
             >
               GUARDAR
             </button>
