@@ -11,7 +11,7 @@ class WahaWebhooksController < ApplicationController
     data  = params[:data] || params[:payload] || {}
 
     # Persist a lightweight event record for ops dashboard
-    WahaEvent.create!(session_name: params[:session] || nil, event_name: event, payload: data)
+    WahaEvent.create!(session_name: params[:session] || nil, event_name: event, payload: data.to_unsafe_h)
 
     case event
     when "messages.upsert"
@@ -19,6 +19,15 @@ class WahaWebhooksController < ApplicationController
       head :ok
     when "message"
       handle_single_message(data)
+      head :ok
+    when "message.reaction"
+      handle_message_reaction(data)
+      head :ok
+    when "message.pin"
+      handle_message_pin(data)
+      head :ok
+    when "message.unpin"
+      handle_message_unpin(data)
       head :ok
     when "presence.update"
       handle_presence_update(data)
@@ -60,19 +69,92 @@ class WahaWebhooksController < ApplicationController
                   msg.dig("text", "body")
                 end
 
+    # Handle reply messages
+    reply_to_message = nil
+    if msg["replyTo"] || msg["quotedMessageId"]
+      reply_message_id = msg["replyTo"] || msg["quotedMessageId"]
+      reply_to_message = chat.messages.find_by(wa_message_id: reply_message_id)
+    end
+
     chat.messages.create!(
       wa_message_id: msg["id"],
       direction: msg["fromMe"] ? :outgoing : :incoming,
       message_type: infer_message_type(msg),
       body: body_text,
-      payload: msg,
-      sent_at: (Time.at(msg["timestamp"]).in_time_zone rescue nil)
+      payload: msg.to_unsafe_h,
+      sent_at: (Time.at(msg["timestamp"]).in_time_zone rescue nil),
+      reply_to_message: reply_to_message
     )
+  end
+
+  def handle_message_reaction(data)
+    message_id = data["id"] || data["messageId"]
+    return if message_id.blank?
+
+    message = Message.find_by(wa_message_id: message_id)
+    return unless message
+
+    user_wa_id = data["from"] || data["user_wa_id"]
+    reaction = data["reaction"]
+
+    return if user_wa_id.blank? || reaction.blank?
+
+    # Remove existing reaction from this user to this message
+    message.message_reactions.where(user_wa_id: user_wa_id).destroy_all
+
+    # Add new reaction (unless it's a removal - empty reaction)
+    unless reaction.empty?
+      message.message_reactions.create!(
+        reaction: reaction,
+        user_wa_id: user_wa_id
+      )
+    end
+
+    # Broadcast the updated message to refresh the UI
+    message.broadcast_replace_later_to message.chat,
+                                      target: "message_#{message.id}",
+                                      partial: "messages/message",
+                                      locals: { message: message }
+  end
+
+  def handle_message_pin(data)
+    message_id = data["id"] || data["messageId"]
+    return if message_id.blank?
+
+    message = Message.find_by(wa_message_id: message_id)
+    return unless message
+
+    # Update local pin state
+    message.update_column(:pinned_at, Time.current)
+
+    # Broadcast the updated message to refresh the UI
+    message.broadcast_replace_later_to message.chat,
+                                      target: "message_#{message.id}",
+                                      partial: "messages/message",
+                                      locals: { message: message }
+  end
+
+  def handle_message_unpin(data)
+    message_id = data["id"] || data["messageId"]
+    return if message_id.blank?
+
+    message = Message.find_by(wa_message_id: message_id)
+    return unless message
+
+    # Update local pin state
+    message.update_column(:pinned_at, nil)
+
+    # Broadcast the updated message to refresh the UI
+    message.broadcast_replace_later_to message.chat,
+                                      target: "message_#{message.id}",
+                                      partial: "messages/message",
+                                      locals: { message: message }
   end
 
   # Determine message_type when WAHA omits the `type` field (e.g., location)
   def infer_message_type(payload)
     return 'location' if payload['location'].present? || (payload['lat'].present? && payload['lng'].present?)
+    return 'document' if payload['document'].present? || payload.dig('_data', 'type') == 'document'
 
     # Check for type in various locations in the payload
     type = payload['type'] ||
@@ -109,14 +191,22 @@ class WahaWebhooksController < ApplicationController
       # Determine direction based on `fromMe` flag
       direction = msg_payload["fromMe"] ? :outgoing : :incoming
 
+      # Handle reply messages
+      reply_to_message = nil
+      if msg_payload["replyTo"] || msg_payload["quotedMessageId"]
+        reply_message_id = msg_payload["replyTo"] || msg_payload["quotedMessageId"]
+        reply_to_message = chat.messages.find_by(wa_message_id: reply_message_id)
+      end
+
       Message.create!(
         chat: chat,
         wa_message_id: msg_payload["id"],
         direction: direction,
         message_type: infer_message_type(msg_payload),
         body: msg_payload.dig("text", "body") || msg_payload["body"],
-        payload: msg_payload,
-        sent_at: (Time.at(msg_payload["timestamp"]).utc rescue nil)
+        payload: msg_payload.to_unsafe_h,
+        sent_at: (Time.at(msg_payload["timestamp"]).utc rescue nil),
+        reply_to_message: reply_to_message
       )
     end
   end
