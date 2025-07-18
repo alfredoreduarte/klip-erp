@@ -1,4 +1,6 @@
 class ChatsController < ApplicationController
+  # Skip CSRF for pin/unpin actions since they're called via AJAX
+  skip_before_action :verify_authenticity_token, only: [:pin, :unpin]
   def index
     if params[:waha_session_id].present?
       @waha_session = WahaSession.find(params[:waha_session_id])
@@ -13,11 +15,11 @@ class ChatsController < ApplicationController
       @chats = Chat.non_broadcast
     end
 
-    # Stable, WhatsApp-like sorting: latest message sent_at (or created_at), fallback to last_message_at, then chat id
+    # Stable, WhatsApp-like sorting: pinned first, then latest message sent_at (or created_at), fallback to last_message_at, then chat id
     @chats = @chats.left_joins(:messages)
                    .select('chats.*, COALESCE(MAX(messages.sent_at), MAX(messages.created_at), chats.last_message_at, chats.created_at) AS sort_time')
                    .group('chats.id')
-                   .order('sort_time DESC, chats.id DESC')
+                   .order('chats.pinned_at DESC NULLS LAST, sort_time DESC, chats.id DESC')
                    .limit(200)
 
     # Mark all incoming, unread messages as read for all visible chats
@@ -46,11 +48,11 @@ class ChatsController < ApplicationController
       @chats = Chat.non_broadcast
     end
 
-    # Stable, WhatsApp-like sorting for sidebar
+    # Stable, WhatsApp-like sorting for sidebar: pinned first, then by latest message
     @chats = @chats.left_joins(:messages)
                    .select('chats.*, COALESCE(MAX(messages.sent_at), MAX(messages.created_at), chats.last_message_at, chats.created_at) AS sort_time')
                    .group('chats.id')
-                   .order('sort_time DESC, chats.id DESC')
+                   .order('chats.pinned_at DESC NULLS LAST, sort_time DESC, chats.id DESC')
                    .limit(200)
 
     # Fallback to the chat's session so the UI can highlight it even without the param
@@ -76,5 +78,27 @@ class ChatsController < ApplicationController
     chat = Chat.find(params[:id])
     WahaClient.new.stop_typing(phone_number: chat.wa_id.delete_suffix("@c.us"))
     head :accepted
+  end
+
+  def pin
+    @chat = Chat.find(params[:id])
+    @chat.pin!
+    redirect_back(fallback_location: chat_path(@chat))
+  end
+
+  def unpin
+    @chat = Chat.find(params[:id])
+    @chat.unpin!
+    redirect_back(fallback_location: chat_path(@chat))
+  end
+
+  def sync_pin_states
+    @chat = Chat.find(params[:id])
+    @chat.sync_pin_states!
+
+    respond_to do |format|
+      format.turbo_stream { head :ok }
+      format.html { redirect_back(fallback_location: chat_path(@chat), notice: "Pin states synced") }
+    end
   end
 end

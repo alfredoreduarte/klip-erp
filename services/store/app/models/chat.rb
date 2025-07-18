@@ -6,10 +6,84 @@ class Chat < ApplicationRecord
   validates :wa_id, presence: true, uniqueness: true
 
   scope :non_broadcast, -> { where.not(wa_id: "status@broadcast") }
+  scope :pinned, -> { where.not(pinned_at: nil) }
+  scope :unpinned, -> { where(pinned_at: nil) }
 
   # Update last_message_at whenever a message is created
   def touch_last_message!(time = Time.current)
     update_column(:last_message_at, time)
+  end
+
+  # Pin the chat to the top
+  def pin!
+    update_column(:pinned_at, Time.current)
+    broadcast_list_item
+  end
+
+  # Unpin the chat
+  def unpin!
+    update_column(:pinned_at, nil)
+    broadcast_list_item
+  end
+
+  # Check if chat is pinned
+  def pinned?
+    pinned_at.present?
+  end
+
+  # Get pinned messages for this chat
+  def pinned_messages
+    messages.pinned.order(pinned_at: :desc)
+  end
+
+  # Sync pin states for all messages in this chat
+  def sync_pin_states!
+    session_name = waha_session&.name || "default"
+
+    begin
+      # Fetch all messages from WAHA to check pin states
+      waha_messages = WahaClient.new.chat_messages(
+        chat_id: wa_id,
+        session: session_name,
+        limit: 100
+      )
+
+      # Create a map of message IDs to their pin state
+      pin_states = {}
+      waha_messages.each do |msg|
+        message_id = msg["id"]
+        is_pinned = msg["pinned"] || msg["pinInfo"]&.present?
+        pin_states[message_id] = is_pinned
+      end
+
+      # Update local messages based on WAHA state
+      messages.find_each do |message|
+        waha_pin_state = pin_states[message.wa_message_id]
+        next if waha_pin_state.nil? # Message not found in WAHA response
+
+        if waha_pin_state && !message.pinned?
+          # Message is pinned in WAHA but not locally
+          message.update_column(:pinned_at, Time.current)
+          message.broadcast_replace_later_to self, target: "message_#{message.id}", partial: "messages/message", locals: { message: message }
+        elsif !waha_pin_state && message.pinned?
+          # Message is not pinned in WAHA but is locally
+          message.update_column(:pinned_at, nil)
+          message.broadcast_replace_later_to self, target: "message_#{message.id}", partial: "messages/message", locals: { message: message }
+        end
+      end
+    rescue WahaClient::Error => e
+      Rails.logger.error "Failed to sync pin states for chat #{id}: #{e.message}"
+      # Don't raise - this is a sync operation, not critical
+    end
+  end
+
+  # Get sort order for chat list (pinned first, then by latest message)
+  def sort_order
+    if pinned?
+      [1, pinned_at] # Pinned chats first, sorted by pin time
+    else
+      [0, latest_message_timestamp] # Unpinned chats, sorted by latest message
+    end
   end
 
   def active_cart

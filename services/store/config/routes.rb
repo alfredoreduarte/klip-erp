@@ -19,12 +19,20 @@ Rails.application.routes.draw do
   post "/waha/webhooks", to: "waha_webhooks#receive"
 
   resources :chats, only: [:index, :show] do
-    resources :messages, only: :create
+    resources :messages, only: :create do
+      member do
+        patch :pin, to: "messages#pin"
+        patch :unpin, to: "messages#unpin"
+      end
+    end
 
     # Typing indicator endpoints
     member do
       post :typing, to: "chats#start_typing"
       post :typing_stop, path: "typing/stop", to: "chats#stop_typing"
+      patch :pin, to: "chats#pin"
+      patch :unpin, to: "chats#unpin"
+      post :sync_pin_states, to: "chats#sync_pin_states"
     end
   end
 
