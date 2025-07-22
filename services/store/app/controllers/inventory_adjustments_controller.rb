@@ -3,7 +3,7 @@ class InventoryAdjustmentsController < ApplicationController
   
   # GET /inventory/adjustments
   def index
-    @adjustments = InventoryAdjustment.includes(:product_variant, :user, :approved_by_user)
+    @adjustments = InventoryAdjustment.includes(:product_variant)
                                      .recent
                                      .limit(50)
     
@@ -20,7 +20,7 @@ class InventoryAdjustmentsController < ApplicationController
     
     respond_to do |format|
       format.html
-      format.json { render json: @adjustments.as_json(include: [:product_variant, :user]) }
+      format.json { render json: @adjustments.as_json(include: [:product_variant]) }
     end
   end
   
@@ -109,7 +109,7 @@ class InventoryAdjustmentsController < ApplicationController
     
     @recent_large_adjustments = InventoryAdjustment.by_date_range(start_date, end_date)
                                                   .where('ABS(quantity) > ?', 50)
-                                                  .includes(:product_variant, :user)
+                                                  .includes(:product_variant)
                                                   .recent
                                                   .limit(20)
     
@@ -120,7 +120,7 @@ class InventoryAdjustmentsController < ApplicationController
           adjustments_by_type: @adjustments_by_type,
           cost_impact_by_type: @cost_impact_by_type,
           top_adjusted_products: @top_adjusted_products,
-          recent_large_adjustments: @recent_large_adjustments.as_json(include: [:product_variant, :user])
+          recent_large_adjustments: @recent_large_adjustments.as_json(include: [:product_variant])
         }
       end
     end
