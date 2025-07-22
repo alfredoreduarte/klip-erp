@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_22_020359) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_22_024204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -129,6 +129,33 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_22_020359) do
     t.index ["pinned_at"], name: "index_chats_on_pinned_at"
     t.index ["wa_id"], name: "index_chats_on_wa_id", unique: true
     t.index ["waha_session_id"], name: "index_chats_on_waha_session_id"
+  end
+
+  create_table "inventory_adjustments", force: :cascade do |t|
+    t.bigint "product_variant_id", null: false
+    t.string "adjustment_type", limit: 50, null: false
+    t.integer "quantity", null: false
+    t.string "reason", limit: 100
+    t.text "notes"
+    t.string "reference_number", limit: 50
+    t.integer "user_id"
+    t.decimal "cost_impact", precision: 10, scale: 2
+    t.integer "quantity_before", null: false
+    t.integer "quantity_after", null: false
+    t.jsonb "metadata", default: {}
+    t.boolean "approved", default: false
+    t.datetime "approved_at"
+    t.integer "approved_by_user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["adjustment_type"], name: "index_inventory_adjustments_on_adjustment_type"
+    t.index ["approved"], name: "index_inventory_adjustments_on_approved"
+    t.index ["created_at"], name: "index_inventory_adjustments_on_created_at"
+    t.index ["metadata"], name: "index_inventory_adjustments_on_metadata", using: :gin
+    t.index ["product_variant_id", "created_at"], name: "idx_on_product_variant_id_created_at_4e53fcc868"
+    t.index ["product_variant_id"], name: "index_inventory_adjustments_on_product_variant_id"
+    t.index ["reference_number"], name: "index_inventory_adjustments_on_reference_number"
+    t.index ["user_id"], name: "index_inventory_adjustments_on_user_id"
   end
 
   create_table "inventory_lots", force: :cascade do |t|
@@ -539,6 +566,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_22_020359) do
   add_foreign_key "cart_items", "product_variants"
   add_foreign_key "carts", "chats"
   add_foreign_key "chats", "waha_sessions"
+  add_foreign_key "inventory_adjustments", "product_variants"
   add_foreign_key "inventory_lots", "product_variants"
   add_foreign_key "media_files", "messages"
   add_foreign_key "message_reactions", "messages"

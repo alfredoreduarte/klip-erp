@@ -1,6 +1,7 @@
 class ProductVariant < ApplicationRecord
   belongs_to :product
   has_many :inventory_lots, dependent: :destroy
+  has_many :inventory_adjustments, dependent: :destroy
   has_one_attached :image
   has_many :order_items, dependent: :restrict_with_exception
   has_many :cart_items, dependent: :destroy

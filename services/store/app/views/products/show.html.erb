@@ -1,0 +1,307 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <%= link_to products_path, class: "text-gray-400 hover:text-gray-600" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        <% end %>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @product.name %></h1>
+          <p class="text-sm text-gray-500 mt-1">Product Details & Inventory</p>
+        </div>
+      </div>
+      
+      <div class="flex gap-2">
+        <%= link_to edit_product_path(@product), 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Edit Product
+        <% end %>
+        
+        <%= link_to duplicate_product_path(@product), method: :post,
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+          Duplicate
+        <% end %>
+        
+        <% if @product.active? %>
+          <%= link_to deactivate_product_path(@product), method: :patch,
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+            Deactivate
+          <% end %>
+        <% else %>
+          <%= link_to activate_product_path(@product), method: :patch,
+              class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" do %>
+            Activate
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Product Details -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Basic Info Card -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6">
+          <div class="flex items-start gap-6">
+            <!-- Product Image -->
+            <div class="flex-shrink-0">
+              <% if @product.image.attached? %>
+                <%= image_tag @product.image, class: "w-32 h-32 object-cover rounded-lg border" %>
+              <% else %>
+                <div class="w-32 h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
+                  <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <h2 class="text-xl font-semibold text-gray-900"><%= @product.name %></h2>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= case @product.status
+                      when 'active' then 'bg-green-100 text-green-800'
+                      when 'inactive' then 'bg-gray-100 text-gray-800'
+                      when 'discontinued' then 'bg-red-100 text-red-800'
+                      end %>">
+                  <%= @product.status.capitalize %>
+                </span>
+              </div>
+              
+              <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Category</dt>
+                  <dd class="text-sm text-gray-900"><%= @product.category %></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Brand</dt>
+                  <dd class="text-sm text-gray-900"><%= @product.brand %></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Base Price</dt>
+                  <dd class="text-sm font-medium text-gray-900">₲<%= number_with_delimiter(@product.base_price) %></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Cost Price</dt>
+                  <dd class="text-sm text-gray-900">₲<%= number_with_delimiter(@product.cost_price) if @product.cost_price %></dd>
+                </div>
+              </dl>
+              
+              <% if @product.description.present? %>
+                <div class="mt-4">
+                  <dt class="text-sm font-medium text-gray-500">Description</dt>
+                  <dd class="text-sm text-gray-900 mt-1"><%= simple_format(@product.description) %></dd>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Variants Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Product Variants</h3>
+            <%= link_to new_product_variant_path(@product), 
+                class: "inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add Variant
+            <% end %>
+          </div>
+
+          <% if @variants.any? %>
+            <div class="overflow-hidden">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variant</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <% @variants.each do |variant| %>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-4 py-3">
+                        <div class="flex items-center">
+                          <% if variant.image.attached? %>
+                            <%= image_tag variant.image, class: "w-10 h-10 object-cover rounded mr-3" %>
+                          <% else %>
+                            <div class="w-10 h-10 bg-gray-100 rounded mr-3 flex items-center justify-center">
+                              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                              </svg>
+                            </div>
+                          <% end %>
+                          <div>
+                            <div class="text-sm font-medium text-gray-900">
+                              <%= link_to variant.name.presence || "Default", [@product, variant], class: "hover:text-blue-600" %>
+                            </div>
+                            <% if variant.option_values.any? %>
+                              <div class="text-xs text-gray-500">
+                                <%= variant.option_values.map { |k, v| "#{k}: #{v}" }.join(', ') %>
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 text-sm text-gray-900"><%= variant.sku %></td>
+                      <td class="px-4 py-3 text-sm text-gray-900">₲<%= number_with_delimiter(variant.price) %></td>
+                      <td class="px-4 py-3">
+                        <span class="text-sm <%= variant.low_stock? ? 'text-red-600 font-medium' : 'text-gray-900' %>">
+                          <%= variant.inventory_quantity %>
+                        </span>
+                        <% if variant.low_stock? %>
+                          <span class="ml-1 text-xs text-red-600">(Low)</span>
+                        <% end %>
+                      </td>
+                      <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          <%= variant.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                          <%= variant.active? ? 'Active' : 'Inactive' %>
+                        </span>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="flex gap-2">
+                          <%= link_to 'View', [@product, variant], class: "text-blue-600 hover:text-blue-900 text-sm" %>
+                          <%= link_to 'Edit', edit_product_variant_path(@product, variant), class: "text-gray-600 hover:text-gray-900 text-sm" %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="text-center py-6">
+              <p class="text-gray-500">No variants created yet.</p>
+              <%= link_to 'Create First Variant', new_product_variant_path(@product), 
+                  class: "mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recent Inventory Adjustments -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Recent Inventory Changes</h3>
+            <%= link_to inventory_adjustments_path, class: "text-sm text-blue-600 hover:text-blue-800" do %>
+              View All →
+            <% end %>
+          </div>
+
+          <% if @recent_adjustments.any? %>
+            <div class="space-y-3">
+              <% @recent_adjustments.each do |adjustment| %>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full <%= adjustment.positive_adjustment? ? 'bg-green-400' : 'bg-red-400' %>"></div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">
+                        <%= adjustment.adjustment_type_name %>
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        <%= adjustment.product_variant.sku %> • <%= adjustment.reason %>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-sm font-medium <%= adjustment.positive_adjustment? ? 'text-green-600' : 'text-red-600' %>">
+                      <%= adjustment.positive_adjustment? ? '+' : '' %><%= adjustment.quantity %>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      <%= time_ago_in_words(adjustment.created_at) %> ago
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-center text-gray-500 py-4">No recent inventory changes.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Summary Stats -->
+    <div class="space-y-6">
+      <!-- Inventory Summary -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Inventory Summary</h3>
+        
+        <div class="space-y-4">
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-500">Total Units</span>
+            <span class="text-sm font-medium text-gray-900"><%= @total_inventory %></span>
+          </div>
+          
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-500">Total Value</span>
+            <span class="text-sm font-medium text-gray-900">₲<%= number_with_delimiter(@total_value.to_i) %></span>
+          </div>
+          
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-500">Active Variants</span>
+            <span class="text-sm font-medium text-gray-900"><%= @variants.count(&:active?) %></span>
+          </div>
+          
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-500">Low Stock Variants</span>
+            <span class="text-sm font-medium text-red-600"><%= @variants.count(&:low_stock?) %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+        
+        <div class="space-y-3">
+          <%= link_to new_inventory_adjustment_path(product_variant_id: @variants.first&.id), 
+              class: "w-full flex items-center px-4 py-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50" do %>
+            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Adjust Inventory
+          <% end %>
+          
+          <%= link_to new_sourcing_order_path, 
+              class: "w-full flex items-center px-4 py-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50" do %>
+            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+            Create Purchase Order
+          <% end %>
+          
+          <%= link_to product_variants_path(@product), 
+              class: "w-full flex items-center px-4 py-3 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50" do %>
+            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            Manage Variants
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

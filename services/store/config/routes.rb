@@ -44,6 +44,61 @@ Rails.application.routes.draw do
   # Proxy WAHA file requests to the WAHA service
   get "/api/files/*path", to: "waha_files#proxy"
 
+  # Product Management
+  resources :products do
+    resources :product_variants, path: :variants, as: :variants do
+      member do
+        patch :activate
+        patch :deactivate
+        post :duplicate
+      end
+    end
+    
+    member do
+      patch :activate
+      patch :deactivate
+      post :duplicate
+    end
+    
+    collection do
+      get :categories
+      post :bulk_import
+      get :export
+      get :low_stock
+    end
+  end
+
+  # Inventory Management
+  resources :inventory_lots, path: 'inventory/lots' do
+    collection do
+      get :expiring
+      post :bulk_receive
+    end
+  end
+
+  resources :inventory_adjustments, path: 'inventory/adjustments' do
+    collection do
+      get :summary
+      post :bulk_create
+    end
+  end
+
+  # Sourcing & Purchasing
+  resources :sourcing_orders, path: 'sourcing' do
+    member do
+      patch :submit
+      patch :approve
+      patch :receive
+      patch :cancel
+    end
+    
+    collection do
+      get :pending
+      get :approved
+      get :received
+    end
+  end
+
   # Orders management
   resources :orders do
     collection do
