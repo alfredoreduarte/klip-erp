@@ -239,10 +239,24 @@
                     options_for_select([
                       ['', ''],
                       ['Asunción', 'Asunción'],
+                      ['Capiatá', 'Capiatá'],
+                      ['Caaguazú', 'Caaguazú'],
                       ['Ciudad del Este', 'Ciudad del Este'],
+                      ['Concepción', 'Concepción'],
+                      ['Coronel Oviedo', 'Coronel Oviedo'],
                       ['Encarnación', 'Encarnación'],
+                      ['Fernando de la Mora', 'Fernando de la Mora'],
+                      ['Lambaré', 'Lambaré'],
+                      ['Limpio', 'Limpio'],
+                      ['Luque', 'Luque'],
+                      ['Mariano Roque Alonso', 'Mariano Roque Alonso'],
+                      ['Ñemby', 'Ñemby'],
                       ['Pedro Juan Caballero', 'Pedro Juan Caballero'],
-                      ['Concepción', 'Concepción']
+                      ['Pilar', 'Pilar'],
+                      ['San Antonio', 'San Antonio'],
+                      ['San Lorenzo', 'San Lorenzo'],
+                      ['Villa Elisa', 'Villa Elisa'],
+                      ['Villarrica', 'Villarrica']
                     ]), 
                     {}, 
                     { 
@@ -257,9 +271,10 @@
               <input 
                 type="url" 
                 id="google-maps-url"
-                placeholder="Pegar enlace de Google Maps"
+                placeholder="Pegar enlace de Google Maps (auto-completa dirección y ciudad)"
                 class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >
+              <p class="text-xs text-gray-500 mt-1">💡 Al pegar un enlace de Google Maps se completará automáticamente la dirección y ciudad</p>
             </div>
 
             <div class="mt-3">
@@ -528,11 +543,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Google Maps URL parsing
+  // Enhanced Google Maps URL parsing
   const googleMapsUrl = document.getElementById('google-maps-url');
   googleMapsUrl.addEventListener('blur', function() {
     const url = this.value.trim();
-    if (url && url.includes('google.com/maps')) {
+    console.log('Google Maps URL entered:', url);
+    if (url && (url.includes('google.com/maps') || url.includes('maps.google.com') || url.includes('goo.gl/maps') || url.includes('maps.app.goo.gl'))) {
+      console.log('URL detected as Google Maps link');
+      // Show loading indicator
+      this.style.borderColor = '#3B82F6';
+      this.style.backgroundColor = '#F0F9FF';
+      
       fetch('/orders/parse_google_maps_link', {
         method: 'POST',
         headers: {
@@ -543,16 +564,54 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(response => response.json())
       .then(data => {
+        if (data.error) {
+          // Show error state
+          this.style.borderColor = '#EF4444';
+          this.style.backgroundColor = '#FEF2F2';
+          console.error('Maps parsing error:', data.error);
+          return;
+        }
+        
+        // Success - fill in the extracted data
         if (data.address) {
           document.querySelector('#order_shipping_address').value = data.address;
-          if (data.city) {
-            document.querySelector('#order_shipping_city').value = data.city;
-            // Trigger city change to calculate shipping
+        }
+        
+        if (data.city) {
+          const citySelect = document.querySelector('#shipping-city');
+          // Check if the detected city exists in our dropdown
+          const option = Array.from(citySelect.options).find(opt => opt.value === data.city);
+          if (option) {
+            citySelect.value = data.city;
+            // Trigger city change to calculate shipping automatically
             shippingCity.dispatchEvent(new Event('change'));
           }
         }
+        
+        // Show success state
+        this.style.borderColor = '#10B981';
+        this.style.backgroundColor = '#F0FDF4';
+        
+        // Reset styling after 2 seconds
+        setTimeout(() => {
+          this.style.borderColor = '';
+          this.style.backgroundColor = '';
+        }, 2000);
+        
+        console.log('Maps data extracted:', data);
       })
-      .catch(error => console.error('Google Maps parsing error:', error));
+      .catch(error => {
+        console.error('Google Maps parsing error:', error);
+        // Show error state
+        this.style.borderColor = '#EF4444';
+        this.style.backgroundColor = '#FEF2F2';
+        
+        // Reset styling after 2 seconds
+        setTimeout(() => {
+          this.style.borderColor = '';
+          this.style.backgroundColor = '';
+        }, 2000);
+      });
     }
   });
 
