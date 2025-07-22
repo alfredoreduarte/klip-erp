@@ -4,8 +4,7 @@ class SourcingOrdersController < ApplicationController
   # GET /sourcing
   def index
     @sourcing_orders = SourcingOrder.includes(:sourcing_order_items)
-                                   .page(params[:page])
-                                   .per(20)
+                                   .limit(50)
                                    .order(created_at: :desc)
     
     # Filters

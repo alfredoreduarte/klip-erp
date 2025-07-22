@@ -140,7 +140,7 @@
               
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex gap-3">
-                  <%= link_to 'View', [variant.product, variant], class: "text-blue-600 hover:text-blue-900" %>
+                  <%= link_to 'View', variant.product, class: "text-blue-600 hover:text-blue-900" %>
                   <%= link_to 'Adjust Stock', new_inventory_adjustment_path(product_variant_id: variant.id), 
                       class: "text-green-600 hover:text-green-900" %>
                   <%= link_to 'Order', new_sourcing_order_path(variant_id: variant.id), 

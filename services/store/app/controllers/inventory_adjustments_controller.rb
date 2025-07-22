@@ -5,8 +5,7 @@ class InventoryAdjustmentsController < ApplicationController
   def index
     @adjustments = InventoryAdjustment.includes(:product_variant, :user, :approved_by_user)
                                      .recent
-                                     .page(params[:page])
-                                     .per(25)
+                                     .limit(50)
     
     # Filters
     @adjustments = @adjustments.by_type(params[:type]) if params[:type].present?

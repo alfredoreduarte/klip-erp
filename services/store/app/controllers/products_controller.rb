@@ -4,8 +4,7 @@ class ProductsController < ApplicationController
   # GET /products
   def index
     @products = Product.includes(:product_variants, image_attachment: :blob)
-                      .page(params[:page])
-                      .per(20)
+                      .limit(100)
     
     # Filters
     @products = @products.where(status: params[:status]) if params[:status].present?
