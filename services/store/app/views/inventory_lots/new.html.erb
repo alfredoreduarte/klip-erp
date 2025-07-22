@@ -1,0 +1,295 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3">
+      <%= link_to inventory_lots_path, class: "text-gray-400 hover:text-gray-600" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">New Inventory Lot</h1>
+        <p class="text-sm text-gray-500 mt-1">Create a new inventory lot for tracking stock receipt</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="bg-white shadow rounded-lg">
+    <%= form_with model: @lot, class: "space-y-6" do |form| %>
+      <% if @lot.errors.any? %>
+        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <ul class="list-disc list-inside">
+                  <% @lot.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="px-6 py-6 space-y-6">
+        <!-- Product Selection -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+            <%= form.select :product_variant_id, 
+                options_from_collection_for_select(
+                  @products.map { |p| p.product_variants.map { |pv| [pv, "#{p.name} - #{pv.sku}", pv.id] } }.flatten(1),
+                  :third, :second, @product_variant&.id
+                ),
+                { prompt: 'Select a product variant...' },
+                { 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  data: { 
+                    controller: "product-selector",
+                    action: "change->product-selector#updateInfo"
+                  }
+                } %>
+            <p class="mt-1 text-xs text-gray-500">Choose the product variant for this inventory lot</p>
+          </div>
+          
+          <div id="product-info" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Current Stock</label>
+            <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
+              <div class="text-sm text-gray-900">
+                <span id="current-stock">0</span> units available
+              </div>
+              <div class="text-xs text-gray-500">
+                Across <span id="active-lots">0</span> active lots
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantity Information -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div>
+            <label for="quantity_received" class="block text-sm font-medium text-gray-700 mb-2">
+              Quantity Received <span class="text-red-500">*</span>
+            </label>
+            <%= form.number_field :quantity_received, 
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "0",
+                min: 1,
+                step: 1,
+                required: true,
+                data: {
+                  controller: "quantity-calculator",
+                  action: "input->quantity-calculator#calculate"
+                } %>
+            <p class="mt-1 text-xs text-gray-500">Total units received in this lot</p>
+          </div>
+          
+          <div>
+            <label for="quantity_remaining" class="block text-sm font-medium text-gray-700 mb-2">
+              Quantity Remaining
+            </label>
+            <%= form.number_field :quantity_remaining, 
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "Auto-filled",
+                min: 0,
+                step: 1,
+                data: {
+                  target: "quantity-calculator.remaining"
+                } %>
+            <p class="mt-1 text-xs text-gray-500">Usually same as received quantity</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <%= form.select :status,
+                options_for_select([
+                  ['Active', 'active'],
+                  ['Depleted', 'depleted'],
+                  ['Expired', 'expired']
+                ], 'active'),
+                {},
+                { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+            <p class="mt-1 text-xs text-gray-500">Current lot status</p>
+          </div>
+        </div>
+
+        <!-- Cost Information -->
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cost Information</h3>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div>
+              <label for="unit_cost" class="block text-sm font-medium text-gray-700 mb-2">
+                Unit Cost (₲)
+              </label>
+              <%= form.number_field :unit_cost, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "0.00",
+                  step: 0.01,
+                  min: 0,
+                  data: {
+                    target: "quantity-calculator.unitCost",
+                    action: "input->quantity-calculator#calculate"
+                  } %>
+              <p class="mt-1 text-xs text-gray-500">Cost per unit</p>
+            </div>
+            
+            <div>
+              <label for="total_cost" class="block text-sm font-medium text-gray-700 mb-2">
+                Total Cost (₲)
+              </label>
+              <%= form.number_field :total_cost, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "Auto-calculated",
+                  step: 0.01,
+                  min: 0,
+                  data: {
+                    target: "quantity-calculator.totalCost"
+                  } %>
+              <p class="mt-1 text-xs text-gray-500">Quantity × Unit Cost</p>
+            </div>
+            
+            <div>
+              <label for="landed_cost_per_unit" class="block text-sm font-medium text-gray-700 mb-2">
+                Landed Cost per Unit (₲)
+              </label>
+              <%= form.number_field :landed_cost_per_unit, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "Optional",
+                  step: 0.01,
+                  min: 0 %>
+              <p class="mt-1 text-xs text-gray-500">Including shipping, taxes, etc.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplier & Purchase Information -->
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Supplier & Purchase Details</h3>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <label for="supplier_name" class="block text-sm font-medium text-gray-700 mb-2">
+                Supplier Name
+              </label>
+              <%= form.text_field :supplier_name, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "Supplier or vendor name" %>
+              <p class="mt-1 text-xs text-gray-500">Name of the supplier or vendor</p>
+            </div>
+            
+            <div>
+              <label for="purchase_order_number" class="block text-sm font-medium text-gray-700 mb-2">
+                Purchase Order Number
+              </label>
+              <%= form.text_field :purchase_order_number, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "PO-2024-001" %>
+              <p class="mt-1 text-xs text-gray-500">Reference number for purchase order</p>
+            </div>
+            
+            <div>
+              <label for="received_date" class="block text-sm font-medium text-gray-700 mb-2">
+                Received Date <span class="text-red-500">*</span>
+              </label>
+              <%= form.date_field :received_date, 
+                  value: Date.current.strftime('%Y-%m-%d'),
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  required: true %>
+              <p class="mt-1 text-xs text-gray-500">When this inventory was received</p>
+            </div>
+            
+            <div>
+              <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-2">
+                Expiry Date
+              </label>
+              <%= form.date_field :expiry_date, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+              <p class="mt-1 text-xs text-gray-500">Best before or expiration date (optional)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="border-t border-gray-200 pt-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <%= form.text_area :notes, 
+                rows: 3,
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "Any additional notes about this lot (optional)" %>
+            <p class="mt-1 text-xs text-gray-500">Optional notes about condition, quality, etc.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <%= link_to 'Cancel', inventory_lots_path, 
+            class: "px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+        
+        <%= form.submit 'Create Inventory Lot', 
+            class: "px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Stimulus Controllers for Dynamic Behavior -->
+<script>
+  // Product Selector Controller
+  class ProductSelectorController extends Application.Controller {
+    updateInfo() {
+      const select = this.element;
+      const productInfo = document.getElementById('product-info');
+      
+      if (select.value) {
+        // Show product info section
+        productInfo.classList.remove('hidden');
+        
+        // In a real implementation, you would fetch this data via AJAX
+        // For now, we'll just show placeholder values
+        document.getElementById('current-stock').textContent = '0';
+        document.getElementById('active-lots').textContent = '0';
+      } else {
+        productInfo.classList.add('hidden');
+      }
+    }
+  }
+
+  // Quantity Calculator Controller
+  class QuantityCalculatorController extends Application.Controller {
+    static targets = ["remaining", "unitCost", "totalCost"];
+    
+    calculate() {
+      const quantityReceived = parseInt(this.element.value) || 0;
+      const unitCost = parseFloat(this.unitCostTarget.value) || 0;
+      
+      // Auto-fill remaining quantity if empty
+      if (this.remainingTarget.value === '' || this.remainingTarget.value === '0') {
+        this.remainingTarget.value = quantityReceived;
+      }
+      
+      // Calculate total cost
+      if (unitCost > 0 && quantityReceived > 0) {
+        this.totalCostTarget.value = (quantityReceived * unitCost).toFixed(2);
+      }
+    }
+  }
+
+  // Register controllers if Stimulus is available
+  if (typeof Application !== 'undefined') {
+    Application.register("product-selector", ProductSelectorController);
+    Application.register("quantity-calculator", QuantityCalculatorController);
+  }
+</script>

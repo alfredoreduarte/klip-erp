@@ -1,0 +1,445 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3">
+      <%= link_to inventory_adjustments_path, class: "text-gray-400 hover:text-gray-600" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Bulk Stock Adjustments</h1>
+        <p class="text-sm text-gray-500 mt-1">Create multiple inventory adjustments at once</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Type Selection -->
+  <div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Adjustment Type</h3>
+      <p class="text-sm text-gray-500 mt-1">Select the type of bulk adjustment you want to perform</p>
+    </div>
+    
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" x-data="{ selectedType: 'count' }">
+        <% InventoryAdjustment::ADJUSTMENT_TYPES.each do |key, label| %>
+          <div class="relative">
+            <input type="radio" 
+                   name="adjustment_type" 
+                   value="<%= key %>" 
+                   id="type_<%= key %>"
+                   class="sr-only peer"
+                   x-model="selectedType">
+            <label for="type_<%= key %>" 
+                   class="flex flex-col items-center justify-center w-full p-4 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 peer-checked:bg-blue-50 hover:text-gray-600 hover:bg-gray-100">
+              <div class="block">
+                <div class="w-full text-sm font-semibold text-center"><%= label %></div>
+                <div class="w-full text-xs text-center mt-1">
+                  <% case key
+                     when 'count' %>
+                    Physical count adjustments
+                  <% when 'damage' %>
+                    Damaged inventory
+                  <% when 'shrinkage' %>
+                    Loss or theft
+                  <% when 'return' %>
+                    Customer returns
+                  <% when 'correction' %>
+                    Fix errors
+                  <% else %>
+                    <%= key.humanize %>
+                  <% end %>
+                </div>
+              </div>
+            </label>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Adjustment Form -->
+  <div class="bg-white shadow rounded-lg">
+    <%= form_with url: bulk_create_inventory_adjustments_path, method: :post, 
+        class: "space-y-6", 
+        data: { controller: "bulk-adjustments" } do |form| %>
+      
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Adjustment Type <span class="text-red-500">*</span>
+            </label>
+            <%= form.select :adjustment_type, 
+                options_for_select(InventoryAdjustment::ADJUSTMENT_TYPES.map { |k, v| [v, k] }, 'count'),
+                {},
+                { 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  data: { target: "bulk-adjustments.adjustmentType", action: "change->bulk-adjustments#updateType" }
+                } %>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Adjustment Date <span class="text-red-500">*</span>
+            </label>
+            <%= form.date_field :adjustment_date, 
+                value: Date.current.strftime('%Y-%m-%d'),
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                required: true %>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Reference Number
+            </label>
+            <%= form.text_field :reference_number, 
+                placeholder: "Optional reference",
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Common Reason</label>
+          <%= form.text_area :common_reason, 
+              rows: 2,
+              placeholder: "Enter a reason that applies to all adjustments (optional)",
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+      </div>
+
+      <!-- Product Selection Methods -->
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Product Selection</h3>
+        
+        <div class="space-y-4" x-data="{ method: 'manual' }">
+          <!-- Method Selection -->
+          <div class="flex gap-4">
+            <label class="flex items-center">
+              <input type="radio" name="selection_method" value="manual" x-model="method" class="text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm font-medium text-gray-900">Manual Selection</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="selection_method" value="category" x-model="method" class="text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm font-medium text-gray-900">By Category</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="selection_method" value="low_stock" x-model="method" class="text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm font-medium text-gray-900">Low Stock Items</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="selection_method" value="csv" x-model="method" class="text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm font-medium text-gray-900">CSV Import</span>
+            </label>
+          </div>
+          
+          <!-- Category Selection -->
+          <div x-show="method === 'category'" x-cloak>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <%= form.select :category_filter, 
+                    options_for_select([['All Categories', '']] + Product.distinct.pluck(:category).compact.sort.map { |c| [c, c] }),
+                    {},
+                    { 
+                      class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                      data: { action: "change->bulk-adjustments#loadProductsByCategory" }
+                    } %>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <%= form.select :status_filter,
+                    options_for_select([
+                      ['All Products', ''],
+                      ['Active Only', 'active'],
+                      ['Inactive Only', 'inactive']
+                    ]),
+                    {},
+                    { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+              </div>
+              
+              <div>
+                <button type="button" 
+                        data-action="click->bulk-adjustments#loadProductsByCategory"
+                        class="mt-6 w-full px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                  Load Products
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Low Stock Selection -->
+          <div x-show="method === 'low_stock'" x-cloak>
+            <div class="flex items-center gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Low Stock Threshold</label>
+                <%= form.number_field :low_stock_threshold, 
+                    value: 10,
+                    min: 0,
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              
+              <div>
+                <button type="button" 
+                        data-action="click->bulk-adjustments#loadLowStockProducts"
+                        class="mt-6 px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                  Load Low Stock Items
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- CSV Import -->
+          <div x-show="method === 'csv'" x-cloak>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <div class="text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <div class="mt-4">
+                  <label for="csv_file" class="cursor-pointer">
+                    <span class="mt-2 block text-sm font-medium text-gray-900">
+                      Upload CSV file or drag and drop
+                    </span>
+                    <%= form.file_field :csv_file, 
+                        id: "csv_file",
+                        accept: ".csv",
+                        class: "sr-only",
+                        data: { action: "change->bulk-adjustments#handleCsvUpload" } %>
+                  </label>
+                  <p class="mt-2 text-xs text-gray-500">
+                    CSV should have columns: SKU, Quantity, Reason (optional)
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- CSV Template Download -->
+            <div class="mt-4 flex justify-center">
+              <%= link_to "#", 
+                  class: "text-sm text-blue-600 hover:text-blue-500",
+                  data: { action: "click->bulk-adjustments#downloadCsvTemplate" } do %>
+                📄 Download CSV Template
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="px-6 py-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Products to Adjust</h3>
+          <div class="flex gap-2">
+            <button type="button" 
+                    data-action="click->bulk-adjustments#selectAll"
+                    class="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-800">
+              Select All
+            </button>
+            <button type="button" 
+                    data-action="click->bulk-adjustments#clearAll"
+                    class="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-800">
+              Clear All
+            </button>
+          </div>
+        </div>
+        
+        <div class="overflow-hidden border border-gray-200 rounded-lg">
+          <table class="min-w-full divide-y divide-gray-200" data-target="bulk-adjustments.productsTable">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="w-8 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input type="checkbox" class="text-blue-600 focus:ring-blue-500 rounded" data-action="change->bulk-adjustments#toggleAll">
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adjustment</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Stock</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" data-target="bulk-adjustments.tableBody">
+              <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                  <p class="mt-2 text-sm">No products selected yet</p>
+                  <p class="text-xs text-gray-400">Select products using the options above or add them manually</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Manual Product Addition -->
+        <div class="mt-4">
+          <button type="button" 
+                  data-action="click->bulk-adjustments#showProductSearch"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Add Product Manually
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200" data-target="bulk-adjustments.summary">
+        <div class="flex justify-between items-center text-sm">
+          <div class="text-gray-600">
+            <span data-target="bulk-adjustments.selectedCount">0</span> products selected
+          </div>
+          <div class="text-gray-900 font-medium">
+            Total adjustments: <span data-target="bulk-adjustments.totalAdjustments">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <%= link_to 'Cancel', inventory_adjustments_path, 
+            class: "px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+        
+        <%= form.submit 'Create Bulk Adjustments', 
+            class: "px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700",
+            data: { target: "bulk-adjustments.submitButton" },
+            disabled: true %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Product Search Modal -->
+<div id="product-search-modal" class="fixed inset-0 z-50 hidden" data-target="bulk-adjustments.modal">
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="fixed inset-0 bg-black opacity-50"></div>
+    <div class="relative bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Add Product</h3>
+      </div>
+      
+      <div class="px-6 py-4">
+        <input type="text" 
+               placeholder="Search products by name or SKU..."
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+               data-target="bulk-adjustments.searchInput"
+               data-action="input->bulk-adjustments#searchProducts">
+      </div>
+      
+      <div class="max-h-64 overflow-y-auto" data-target="bulk-adjustments.searchResults">
+        <!-- Search results will be populated here -->
+      </div>
+      
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <button type="button" 
+                data-action="click->bulk-adjustments#closeModal"
+                class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Stimulus controller for bulk adjustments
+class BulkAdjustmentsController extends Application.Controller {
+  static targets = ["adjustmentType", "productsTable", "tableBody", "summary", "selectedCount", "totalAdjustments", "submitButton", "modal", "searchInput", "searchResults"];
+  
+  connect() {
+    this.selectedProducts = new Map();
+    this.updateSummary();
+  }
+  
+  updateType() {
+    // Update UI based on adjustment type
+    this.updateSummary();
+  }
+  
+  loadProductsByCategory() {
+    // Implementation would fetch products by category
+    console.log('Loading products by category...');
+  }
+  
+  loadLowStockProducts() {
+    // Implementation would fetch low stock products
+    console.log('Loading low stock products...');
+  }
+  
+  handleCsvUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      // Implementation would parse CSV and populate table
+      console.log('Processing CSV file:', file.name);
+    }
+  }
+  
+  downloadCsvTemplate() {
+    // Implementation would download CSV template
+    const csv = "SKU,Quantity,Reason\nEXAMPLE-001,10,Physical count adjustment\n";
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bulk_adjustment_template.csv';
+    a.click();
+  }
+  
+  selectAll() {
+    // Implementation would select all visible products
+    console.log('Selecting all products...');
+  }
+  
+  clearAll() {
+    // Implementation would clear all selections
+    this.selectedProducts.clear();
+    this.updateSummary();
+    this.updateTableCheckboxes();
+  }
+  
+  toggleAll(event) {
+    const checked = event.target.checked;
+    // Implementation would toggle all checkboxes
+    console.log('Toggle all:', checked);
+  }
+  
+  showProductSearch() {
+    this.modalTarget.classList.remove('hidden');
+  }
+  
+  closeModal() {
+    this.modalTarget.classList.add('hidden');
+  }
+  
+  searchProducts(event) {
+    const query = event.target.value;
+    // Implementation would search products and populate results
+    console.log('Searching for:', query);
+  }
+  
+  updateSummary() {
+    const count = this.selectedProducts.size;
+    const totalAdjustments = Array.from(this.selectedProducts.values())
+      .reduce((sum, product) => sum + Math.abs(product.adjustment || 0), 0);
+    
+    this.selectedCountTarget.textContent = count;
+    this.totalAdjustmentsTarget.textContent = totalAdjustments;
+    
+    // Enable/disable submit button
+    this.submitButtonTarget.disabled = count === 0;
+  }
+  
+  updateTableCheckboxes() {
+    // Implementation would update all table checkboxes based on selectedProducts
+  }
+}
+
+// Register controller if Stimulus is available
+if (typeof Application !== 'undefined') {
+  Application.register("bulk-adjustments", BulkAdjustmentsController);
+}
+</script>

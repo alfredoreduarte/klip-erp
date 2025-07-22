@@ -1,0 +1,293 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <%= link_to inventory_adjustments_path, class: "text-gray-400 hover:text-gray-600" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        <% end %>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Inventory Analytics</h1>
+          <p class="text-sm text-gray-500 mt-1">Summary of inventory adjustments and trends</p>
+        </div>
+      </div>
+      
+      <div class="flex gap-3">
+        <%= form_with url: summary_inventory_adjustments_path, method: :get, local: true, class: "flex items-center gap-2" do |form| %>
+          <%= form.date_field :start_date, value: params[:start_date] || 30.days.ago.strftime('%Y-%m-%d'), 
+              class: "px-3 py-2 border border-gray-300 rounded-md text-sm" %>
+          <span class="text-gray-500">to</span>
+          <%= form.date_field :end_date, value: params[:end_date] || Date.current.strftime('%Y-%m-%d'), 
+              class: "px-3 py-2 border border-gray-300 rounded-md text-sm" %>
+          <%= form.submit 'Update', class: "px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Total Increases</p>
+          <p class="text-lg font-semibold text-green-600">
+            +<%= @adjustments_by_type.select { |type, qty| qty > 0 }.values.sum %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Total Decreases</p>
+          <p class="text-lg font-semibold text-red-600">
+            <%= @adjustments_by_type.select { |type, qty| qty < 0 }.values.sum %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Net Change</p>
+          <p class="text-lg font-semibold <%= @adjustments_by_type.values.sum >= 0 ? 'text-green-600' : 'text-red-600' %>">
+            <%= @adjustments_by_type.values.sum >= 0 ? '+' : '' %><%= @adjustments_by_type.values.sum %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Cost Impact</p>
+          <p class="text-lg font-semibold text-gray-900">
+            ₲<%= number_with_delimiter(@cost_impact_by_type.values.sum.to_i.abs) %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Adjustments by Type -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Adjustments by Type</h3>
+        <p class="mt-1 text-sm text-gray-500">Quantity changes by adjustment category</p>
+      </div>
+      
+      <div class="px-6 py-4">
+        <div class="space-y-4">
+          <% @adjustments_by_type.sort_by { |type, qty| -qty.abs }.each do |type, quantity| %>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= case type
+                      when 'purchase' then 'bg-green-100 text-green-800'
+                      when 'sale' then 'bg-blue-100 text-blue-800'
+                      when 'return' then 'bg-yellow-100 text-yellow-800'
+                      when 'shrinkage', 'damage' then 'bg-red-100 text-red-800'
+                      when 'count' then 'bg-purple-100 text-purple-800'
+                      else 'bg-gray-100 text-gray-800'
+                      end %>">
+                  <%= InventoryAdjustment::ADJUSTMENT_TYPES[type] %>
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium <%= quantity >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                  <%= quantity >= 0 ? '+' : '' %><%= quantity %>
+                </span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-600 h-2 rounded-full" 
+                       style="width: <%= [@adjustments_by_type.values.map(&:abs).max > 0 ? (quantity.abs.to_f / @adjustments_by_type.values.map(&:abs).max * 100) : 0, 5].max %>%"></div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Impact by Type -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Cost Impact by Type</h3>
+        <p class="mt-1 text-sm text-gray-500">Financial impact of inventory changes</p>
+      </div>
+      
+      <div class="px-6 py-4">
+        <div class="space-y-4">
+          <% @cost_impact_by_type.sort_by { |type, cost| -cost.abs }.each do |type, cost| %>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= case type
+                      when 'purchase' then 'bg-green-100 text-green-800'
+                      when 'sale' then 'bg-blue-100 text-blue-800'
+                      when 'return' then 'bg-yellow-100 text-yellow-800'
+                      when 'shrinkage', 'damage' then 'bg-red-100 text-red-800'
+                      when 'count' then 'bg-purple-100 text-purple-800'
+                      else 'bg-gray-100 text-gray-800'
+                      end %>">
+                  <%= InventoryAdjustment::ADJUSTMENT_TYPES[type] %>
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-900">
+                  ₲<%= number_with_delimiter(cost.to_i.abs) %>
+                </span>
+                <div class="w-20 bg-gray-200 rounded-full h-2">
+                  <div class="bg-purple-600 h-2 rounded-full" 
+                       style="width: <%= [@cost_impact_by_type.values.map(&:abs).max > 0 ? (cost.abs / @cost_impact_by_type.values.map(&:abs).max * 100) : 0, 5].max %>%"></div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Adjusted Products -->
+  <div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Most Adjusted Products</h3>
+      <p class="mt-1 text-sm text-gray-500">Products with highest adjustment activity</p>
+    </div>
+    
+    <div class="px-6 py-4">
+      <% if @top_adjusted_products.any? %>
+        <div class="space-y-3">
+          <% @top_adjusted_products.each_with_index do |(product_name, total_qty), index| %>
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+              <div class="flex items-center">
+                <span class="inline-flex items-center justify-center w-6 h-6 bg-gray-100 text-gray-600 text-xs font-medium rounded-full mr-3">
+                  <%= index + 1 %>
+                </span>
+                <div>
+                  <div class="text-sm font-medium text-gray-900"><%= product_name %></div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-medium <%= total_qty >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                  <%= total_qty >= 0 ? '+' : '' %><%= total_qty %> units
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-center text-gray-500 py-4">No adjustment data for this period.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent Large Adjustments -->
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Recent Large Adjustments</h3>
+      <p class="mt-1 text-sm text-gray-500">Significant inventory changes requiring attention</p>
+    </div>
+    
+    <div class="overflow-hidden">
+      <% if @recent_large_adjustments.any? %>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @recent_large_adjustments.each do |adjustment| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= adjustment.created_at.strftime('%m/%d/%Y') %>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= adjustment.product_variant.product.name %>
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    <%= adjustment.product_variant.sku %>
+                  </div>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    <%= case adjustment.adjustment_type
+                        when 'purchase' then 'bg-green-100 text-green-800'
+                        when 'sale' then 'bg-blue-100 text-blue-800'
+                        when 'return' then 'bg-yellow-100 text-yellow-800'
+                        when 'shrinkage', 'damage' then 'bg-red-100 text-red-800'
+                        when 'count' then 'bg-purple-100 text-purple-800'
+                        else 'bg-gray-100 text-gray-800'
+                        end %>">
+                    <%= adjustment.adjustment_type_name %>
+                  </span>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="text-sm font-medium <%= adjustment.positive_adjustment? ? 'text-green-600' : 'text-red-600' %>">
+                    <%= adjustment.positive_adjustment? ? '+' : '' %><%= adjustment.quantity %>
+                  </span>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= truncate(adjustment.reason, length: 30) %>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <%= link_to 'View', adjustment, class: "text-blue-600 hover:text-blue-900" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="text-center py-6">
+          <p class="text-gray-500">No large adjustments in this period.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

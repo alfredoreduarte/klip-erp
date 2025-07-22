@@ -268,7 +268,7 @@
 
   <!-- Form Actions -->
   <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
-    <%= link_to 'Cancel', variant.persisted? ? [product, variant] : product_variants_path(product), 
+    <%= link_to 'Cancel', variant.persisted? ? [product, variant] : [product, :variants], 
         class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
     <%= form.submit variant.persisted? ? 'Update Variant' : 'Create Variant',
         class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700" %>

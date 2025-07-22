@@ -68,4 +68,7 @@ Rails.application.configure do
   # Allow internal service calls during tests
   config.hosts << "store"
   config.hosts << "www.example.com"
+  
+  # Active Storage configuration for tests
+  config.active_storage.service = :local
 end

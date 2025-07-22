@@ -60,20 +60,20 @@ class ProductVariantsController < ApplicationController
       redirect_to [@product, @variant], alert: 'Cannot delete variant with existing orders.'
     else
       @variant.destroy!
-      redirect_to product_variants_path(@product), notice: 'Variant was successfully deleted.'
+      redirect_to [@product, :variants], notice: 'Variant was successfully deleted.'
     end
   end
   
-  # PATCH /products/1/variants/1/activate
+  # POST /products/1/variants/1/activate
   def activate
     @variant.update!(active: true)
-    redirect_to [@product, @variant], notice: 'Variant activated.'
+    redirect_to product_variant_path(@product, @variant), notice: 'Variant activated.'
   end
   
-  # PATCH /products/1/variants/1/deactivate
+  # POST /products/1/variants/1/deactivate
   def deactivate
     @variant.update!(active: false)
-    redirect_to [@product, @variant], notice: 'Variant deactivated.'
+    redirect_to product_variant_path(@product, @variant), notice: 'Variant deactivated.'
   end
   
   # POST /products/1/variants/1/duplicate

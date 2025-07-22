@@ -4,7 +4,8 @@ class SourcingOrderItem < ApplicationRecord
   
   validates :quantity_ordered, numericality: { greater_than: 0 }
   validates :quantity_received, numericality: { greater_than_or_equal_to: 0 }
-  validates :unit_cost, :total_cost, numericality: { greater_than: 0 }
+  validates :unit_cost, numericality: { greater_than: 0 }
+  validates :total_cost, numericality: { greater_than: 0 }, allow_nil: true
   validates :status, inclusion: { in: %w[pending received cancelled] }
   
   scope :pending, -> { where(status: 'pending') }

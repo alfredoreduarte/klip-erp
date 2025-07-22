@@ -1,0 +1,29 @@
+one:
+  product_variant: one
+  adjustment_type: "count"
+  quantity: 10
+  unit_cost: 15000
+  total_cost_impact: 150000
+  reference_number: "ADJ-001"
+  reason: "Physical inventory count"
+  adjustment_date: <%= Date.current %>
+  quantity_before: 90
+  quantity_after: 100
+  status: "approved"
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.day.ago %>
+
+two:
+  product_variant: two
+  adjustment_type: "purchase"
+  quantity: 50
+  unit_cost: 25000
+  total_cost_impact: 1250000
+  reference_number: "PO-001"
+  reason: "Purchase order receipt"
+  adjustment_date: <%= Date.current %>
+  quantity_before: 0
+  quantity_after: 50
+  status: "approved"
+  created_at: <%= 2.days.ago %>
+  updated_at: <%= 2.days.ago %>

@@ -125,7 +125,7 @@
                   <% end %>
                   <div>
                     <div class="text-sm font-medium text-gray-900">
-                      <%= link_to variant.name.presence || "Default Variant", [@product, variant], class: "hover:text-blue-600" %>
+                      <%= link_to variant.name.presence || "Default Variant", product_variant_path(@product, variant), class: "hover:text-blue-600" %>
                     </div>
                     <% if variant.option_values.any? %>
                       <div class="text-xs text-gray-500 mt-1">
@@ -191,19 +191,28 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex flex-col gap-1">
                   <div class="flex gap-2">
-                    <%= link_to 'View', [@product, variant], class: "text-blue-600 hover:text-blue-900" %>
+                    <%= link_to 'View', product_variant_path(@product, variant), class: "text-blue-600 hover:text-blue-900" %>
                     <%= link_to 'Edit', edit_product_variant_path(@product, variant), class: "text-gray-600 hover:text-gray-900" %>
                   </div>
                   <div class="flex gap-2">
                     <% if variant.active? %>
                       <%= link_to 'Deactivate', deactivate_product_variant_path(@product, variant), 
-                          method: :patch, class: "text-red-600 hover:text-red-900 text-xs" %>
+                          data: { 
+                            turbo_method: :post,
+                            confirm: "Deactivate this variant? It will no longer be available for purchase." 
+                          },
+                          class: "text-red-600 hover:text-red-900 text-xs" %>
                     <% else %>
                       <%= link_to 'Activate', activate_product_variant_path(@product, variant), 
-                          method: :patch, class: "text-green-600 hover:text-green-900 text-xs" %>
+                          data: { 
+                            turbo_method: :post,
+                            confirm: "Activate this variant?" 
+                          },
+                          class: "text-green-600 hover:text-green-900 text-xs" %>
                     <% end %>
                     <%= link_to 'Duplicate', duplicate_product_variant_path(@product, variant), 
-                        method: :post, class: "text-purple-600 hover:text-purple-900 text-xs" %>
+                        data: { turbo_method: :post }, 
+                        class: "text-purple-600 hover:text-purple-900 text-xs" %>
                   </div>
                 </div>
               </td>

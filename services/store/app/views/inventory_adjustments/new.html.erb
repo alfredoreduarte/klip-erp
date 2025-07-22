@@ -1,0 +1,291 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3">
+      <%= link_to inventory_adjustments_path, class: "text-gray-400 hover:text-gray-600" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">New Inventory Adjustment</h1>
+        <p class="text-sm text-gray-500 mt-1">Record inventory changes for stock management</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <%= form_with model: @adjustment, local: true, class: "space-y-6" do |form| %>
+    <% if @adjustment.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-md p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul class="list-disc pl-5 space-y-1">
+                <% @adjustment.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Adjustment Details</h3>
+        <p class="mt-1 text-sm text-gray-500">Select the product variant and adjustment type.</p>
+      </div>
+      
+      <div class="px-6 py-4 space-y-6">
+        <!-- Product Variant Selection -->
+        <div>
+          <%= form.label :product_variant_id, "Product Variant", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <% if @product_variant %>
+            <div class="flex items-center p-3 bg-gray-50 rounded-md border">
+              <% if @product_variant.image.attached? %>
+                <%= image_tag @product_variant.image, class: "w-12 h-12 object-cover rounded mr-3" %>
+              <% elsif @product_variant.product.image.attached? %>
+                <%= image_tag @product_variant.product.image, class: "w-12 h-12 object-cover rounded mr-3 opacity-50" %>
+              <% else %>
+                <div class="w-12 h-12 bg-gray-100 rounded mr-3 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                </div>
+              <% end %>
+              <div class="flex-1">
+                <h4 class="text-sm font-medium text-gray-900"><%= @product_variant.product.name %></h4>
+                <p class="text-sm text-gray-500">SKU: <%= @product_variant.sku %></p>
+                <p class="text-xs text-gray-400">Current Stock: <%= @product_variant.inventory_quantity %> units</p>
+              </div>
+            </div>
+            <%= form.hidden_field :product_variant_id, value: @product_variant.id %>
+          <% else %>
+            <select id="product-variant-select" name="inventory_adjustment[product_variant_id]" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    required>
+              <option value="">Select a product variant...</option>
+              <% @products.each do |product| %>
+                <optgroup label="<%= product.name %> (<%= product.category %>)">
+                  <% product.product_variants.each do |variant| %>
+                    <option value="<%= variant.id %>" 
+                            data-current-stock="<%= variant.inventory_quantity %>"
+                            data-product-name="<%= product.name %>"
+                            data-sku="<%= variant.sku %>">
+                      <%= variant.sku %> - <%= variant.name.presence || "Default" %> 
+                      (Stock: <%= variant.inventory_quantity %>)
+                    </option>
+                  <% end %>
+                </optgroup>
+              <% end %>
+            </select>
+            <div id="selected-variant-info" class="mt-2 hidden">
+              <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <div class="flex items-center">
+                  <svg class="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div>
+                    <p class="text-sm font-medium text-blue-900" id="variant-info-text"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Adjustment Type -->
+          <div>
+            <%= form.label :adjustment_type, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= form.select :adjustment_type, 
+                options_for_select(InventoryAdjustment::ADJUSTMENT_TYPES.map { |key, name| [name, key] }),
+                { prompt: "Select adjustment type..." },
+                { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  id: "adjustment-type-select" } %>
+            <div id="adjustment-type-help" class="mt-1 text-sm text-gray-500">
+              Choose the type of inventory change you're recording.
+            </div>
+          </div>
+
+          <!-- Quantity -->
+          <div>
+            <%= form.label :quantity, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <div class="relative">
+              <%= form.number_field :quantity, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  placeholder: "Enter quantity",
+                  id: "quantity-input" %>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 text-sm">units</span>
+              </div>
+            </div>
+            <div id="quantity-help" class="mt-1 text-sm text-gray-500">
+              Use positive numbers for increases, negative for decreases.
+            </div>
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div>
+          <%= form.label :reason, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :reason, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Brief reason for adjustment",
+              maxlength: 100 %>
+          <p class="mt-1 text-sm text-gray-500">Required: Brief explanation for this adjustment (max 100 characters)</p>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <%= form.label :notes, "Additional Notes", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_area :notes, rows: 3,
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Optional: Additional details about this adjustment..." %>
+        </div>
+
+        <!-- Reference Number -->
+        <div>
+          <%= form.label :reference_number, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :reference_number, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Optional: Custom reference number" %>
+          <p class="mt-1 text-sm text-gray-500">Leave blank to auto-generate based on adjustment type</p>
+        </div>
+
+        <!-- Cost Impact (Optional) -->
+        <div>
+          <%= form.label :cost_impact, "Cost Impact", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-sm">₲</span>
+            </div>
+            <%= form.number_field :cost_impact, step: 0.01,
+                class: "w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "0.00" %>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Optional: Override automatic cost calculation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Section -->
+    <div id="adjustment-preview" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
+      <h3 class="text-sm font-medium text-yellow-800 mb-2">Adjustment Preview</h3>
+      <div id="preview-content" class="text-sm text-yellow-700"></div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
+      <%= link_to 'Cancel', inventory_adjustments_path, 
+          class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+      <%= form.submit 'Create Adjustment',
+          class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const variantSelect = document.getElementById('product-variant-select');
+  const variantInfo = document.getElementById('selected-variant-info');
+  const variantInfoText = document.getElementById('variant-info-text');
+  const adjustmentTypeSelect = document.getElementById('adjustment-type-select');
+  const quantityInput = document.getElementById('quantity-input');
+  const adjustmentPreview = document.getElementById('adjustment-preview');
+  const previewContent = document.getElementById('preview-content');
+
+  // Show variant info when selected
+  if (variantSelect) {
+    variantSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      if (this.value) {
+        const productName = selectedOption.dataset.productName;
+        const sku = selectedOption.dataset.sku;
+        const currentStock = selectedOption.dataset.currentStock;
+        
+        variantInfoText.textContent = `${productName} (${sku}) - Current Stock: ${currentStock} units`;
+        variantInfo.classList.remove('hidden');
+      } else {
+        variantInfo.classList.add('hidden');
+      }
+      updatePreview();
+    });
+  }
+
+  // Update preview when form changes
+  [adjustmentTypeSelect, quantityInput].forEach(element => {
+    if (element) {
+      element.addEventListener('input', updatePreview);
+    }
+  });
+
+  function updatePreview() {
+    const variant = variantSelect ? variantSelect.options[variantSelect.selectedIndex] : null;
+    const adjustmentType = adjustmentTypeSelect ? adjustmentTypeSelect.value : '';
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 0;
+
+    if (variant && variant.value && adjustmentType && quantity !== 0) {
+      const currentStock = parseInt(variant.dataset.currentStock);
+      const newStock = currentStock + quantity;
+      const changeType = quantity > 0 ? 'increase' : 'decrease';
+      const changeColor = quantity > 0 ? 'text-green-700' : 'text-red-700';
+
+      previewContent.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span>Current Stock:</span>
+          <span class="font-medium">${currentStock} units</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span>Change:</span>
+          <span class="font-medium ${changeColor}">${quantity > 0 ? '+' : ''}${quantity} units</span>
+        </div>
+        <div class="flex justify-between items-center font-semibold border-t border-yellow-300 pt-2 mt-2">
+          <span>New Stock:</span>
+          <span class="${newStock < 0 ? 'text-red-700' : 'text-green-700'}">${newStock} units</span>
+        </div>
+        ${newStock < 0 ? '<div class="text-red-700 text-xs mt-1">⚠️ Warning: This will result in negative stock!</div>' : ''}
+      `;
+      adjustmentPreview.classList.remove('hidden');
+    } else {
+      adjustmentPreview.classList.add('hidden');
+    }
+  }
+
+  // Update help text based on adjustment type
+  if (adjustmentTypeSelect) {
+    adjustmentTypeSelect.addEventListener('change', function() {
+      const helpTexts = {
+        'purchase': 'Inventory received from supplier or purchase order',
+        'sale': 'Inventory sold or fulfilled to customer',
+        'return': 'Customer returned items back to inventory',
+        'shrinkage': 'Lost, stolen, or damaged inventory (requires approval)',
+        'damage': 'Items damaged and removed from sellable inventory',
+        'transfer_in': 'Inventory transferred in from another location',
+        'transfer_out': 'Inventory transferred out to another location',
+        'count': 'Physical count adjustment to match actual inventory',
+        'promotion': 'Items used for promotional or marketing purposes',
+        'sample': 'Items given as samples or demonstrations',
+        'expired': 'Items removed due to expiration',
+        'manual': 'Manual adjustment (requires approval if significant)',
+        'correction': 'Correction of previous error (requires approval)'
+      };
+      
+      const helpElement = document.getElementById('adjustment-type-help');
+      if (helpElement && helpTexts[this.value]) {
+        helpElement.textContent = helpTexts[this.value];
+      } else if (helpElement) {
+        helpElement.textContent = 'Choose the type of inventory change you\'re recording.';
+      }
+    });
+  }
+});
+</script>

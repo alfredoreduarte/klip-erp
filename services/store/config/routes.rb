@@ -48,15 +48,15 @@ Rails.application.routes.draw do
   resources :products do
     resources :product_variants, path: :variants, as: :variants do
       member do
-        patch :activate
-        patch :deactivate
+        post :activate
+        post :deactivate
         post :duplicate
       end
     end
     
     member do
-      patch :activate
-      patch :deactivate
+      post :activate
+      post :deactivate
       post :duplicate
     end
     
