@@ -194,8 +194,9 @@ class OrdersController < ApplicationController
       :customer_name, :customer_surname, :customer_phone, :customer_email,
       :shipping_address, :shipping_city, :shipping_notes,
       :delivery_date, :delivery_time_start, :delivery_time_end,
-      :payment_method, :customer_notes, :gift_wrap,
-      :shipping_amount, :discount_amount, :currency
+      :payment_method, :customer_notes, :gift_wrap, :gift_message,
+      :shipping_amount, :discount_amount, :currency,
+      :recipient_name, :recipient_phone, :hide_prices, :is_gift_order
     )
   end
 

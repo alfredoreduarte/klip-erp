@@ -110,15 +110,61 @@
             </div>
           </div>
 
-          <!-- Recipient Section -->
+          <!-- Gift/Recipient Section -->
           <div class="bg-white shadow-sm border rounded-lg p-4">
             <div class="flex items-center mb-3">
-              <span class="text-lg mr-2">👥</span>
-              <h2 class="text-lg font-semibold text-gray-900">Recibe Otra Persona?</h2>
+              <span class="text-lg mr-2">🎁</span>
+              <h2 class="text-lg font-semibold text-gray-900">Pedido como Regalo</h2>
             </div>
-            <p class="text-sm text-gray-600">
-              (Optional recipient fields can be added here)
-            </p>
+            
+            <div class="mb-3">
+              <label class="flex items-center">
+                <input type="checkbox" id="is-gift-order" class="mr-2 rounded border-gray-300">
+                <span class="text-sm font-medium text-gray-700">Este pedido es un regalo para otra persona</span>
+              </label>
+            </div>
+
+            <div id="gift-recipient-fields" class="space-y-3 hidden">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <h3 class="text-sm font-medium text-blue-900 mb-2">Información del Destinatario</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nombre del destinatario</label>
+                    <input type="text" name="recipient_name" 
+                           class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Nombre de quien recibe">
+                  </div>
+                  
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Teléfono del destinatario</label>
+                    <input type="tel" name="recipient_phone" 
+                           class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Para coordinar la entrega">
+                  </div>
+                </div>
+
+                <div class="mt-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Mensaje de regalo (opcional)</label>
+                  <textarea name="gift_message" rows="2"
+                            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Mensaje que acompañará al regalo"></textarea>
+                </div>
+
+                <div class="mt-3">
+                  <label class="flex items-center">
+                    <input type="checkbox" name="hide_prices" class="mr-2 rounded border-gray-300">
+                    <span class="text-xs text-gray-700">Ocultar precios en la entrega</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div id="gift-helper-text" class="mt-2">
+              <p class="text-xs text-gray-500">
+                💡 Para regalos, completaremos la información del destinatario para una entrega perfecta
+              </p>
+            </div>
           </div>
         </div>
 
@@ -134,7 +180,7 @@
             </div>
 
             <!-- Product Search -->
-            <div class="mb-3">
+            <div class="mb-3 relative">
               <label class="block text-xs font-medium text-gray-700 mb-1">
                 Seleccionar producto
               </label>
@@ -150,8 +196,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </button>
+                <div id="product-search-results" class="absolute z-50 left-0 right-0 top-full bg-white border border-gray-200 rounded-md shadow-xl hidden mt-1 max-h-60 overflow-y-auto"></div>
               </div>
-              <div id="product-search-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden mt-1 max-h-80 overflow-y-auto"></div>
             </div>
 
             <!-- Cart Items -->
@@ -290,69 +336,54 @@
           <div class="bg-white shadow-sm border rounded-lg p-4">
             <div class="flex items-center mb-3">
               <span class="text-lg mr-2">📅</span>
-              <h2 class="text-lg font-semibold text-gray-900">Fecha/Hora</h2>
+              <h2 class="text-lg font-semibold text-gray-900">Programar Entrega</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label class="flex items-center mb-2">
-                  <input type="radio" name="delivery_option" value="date" class="mr-2">
-                  <span class="text-xs font-medium text-gray-700">📅 entregar en fecha</span>
-                </label>
-              </div>
+            <!-- Delivery Date -->
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Fecha de entrega</label>
+              <%= f.date_field :delivery_date, 
+                  class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  min: Date.current.strftime('%Y-%m-%d') %>
+              <p class="text-xs text-gray-500 mt-1">Dejar vacío para entrega estándar</p>
+            </div>
 
-              <div>
-                <label class="flex items-center mb-2">
-                  <input type="radio" name="delivery_option" value="time_range" class="mr-2">
-                  <span class="text-xs font-medium text-gray-700">⏰ entre la hora</span>
+            <!-- Time Options -->
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-gray-700 mb-2">Horario preferido</label>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <label class="flex items-center">
+                  <input type="radio" name="delivery_time_option" value="any" class="mr-2" checked>
+                  <span class="text-xs text-gray-700">Cualquier hora</span>
                 </label>
-              </div>
-
-              <div>
-                <label class="flex items-center mb-2">
-                  <input type="radio" name="delivery_option" value="flexible" class="mr-2">
-                  <span class="text-xs font-medium text-gray-700">⏱️ y hasta la hora</span>
+                <label class="flex items-center">
+                  <input type="radio" name="delivery_time_option" value="morning" class="mr-2">
+                  <span class="text-xs text-gray-700">Mañana (9-12h)</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="delivery_time_option" value="afternoon" class="mr-2">
+                  <span class="text-xs text-gray-700">Tarde (13-18h)</span>
                 </label>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+            <!-- Specific Time Range -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <select class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                  <option>Cualquier hora</option>
-                  <option>9:00</option>
-                  <option>10:00</option>
-                  <option>11:00</option>
-                  <option>12:00</option>
-                  <option>13:00</option>
-                  <option>14:00</option>
-                  <option>15:00</option>
-                  <option>16:00</option>
-                  <option>17:00</option>
-                  <option>18:00</option>
-                </select>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Desde</label>
+                <%= f.time_field :delivery_time_start, 
+                    class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
               </div>
-
               <div>
-                <select class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                  <option>Cualquier hora</option>
-                  <option>9:00</option>
-                  <option>10:00</option>
-                  <option>11:00</option>
-                  <option>12:00</option>
-                  <option>13:00</option>
-                  <option>14:00</option>
-                  <option>15:00</option>
-                  <option>16:00</option>
-                  <option>17:00</option>
-                  <option>18:00</option>
-                </select>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Hasta</label>
+                <%= f.time_field :delivery_time_end, 
+                    class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
               </div>
             </div>
 
             <div class="mt-3">
-              <p class="text-sm text-gray-600">
-                Dejar sin fecha para procesar en la rutina diaria normal.
+              <p class="text-xs text-gray-500">
+                💡 Los horarios específicos están sujetos a disponibilidad del courier
               </p>
             </div>
           </div>
@@ -430,12 +461,12 @@ document.addEventListener('DOMContentLoaded', function() {
       searchResults.innerHTML = '<div class="p-3 text-gray-500">No products found</div>';
     } else {
       searchResults.innerHTML = products.map(product => `
-        <div class="p-3 hover:bg-gray-50 cursor-pointer border-b flex items-center space-x-3" onclick="addToCart(${product.id}, '${product.name}', ${product.price}, '${product.thumbnail_url}', '${product.category}')">
-          <img src="${product.thumbnail_url}" alt="${product.name}" class="w-12 h-12 object-cover rounded-md border">
-          <div class="flex-1">
-            <div class="font-medium text-sm">${product.name}</div>
-            <div class="text-xs text-gray-600">₲${product.price} - Stock: ${product.inventory}</div>
-            <div class="text-xs text-blue-600">${product.category}</div>
+        <div class="p-2 hover:bg-gray-50 cursor-pointer border-b flex items-center gap-2 min-w-0" onclick="addToCart(${product.id}, '${product.name}', ${product.price}, '${product.thumbnail_url}', '${product.category}')">
+          <img src="${product.thumbnail_url}" alt="${product.name}" class="w-10 h-10 object-cover rounded border flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-xs truncate">${product.name}</div>
+            <div class="text-xs text-gray-600 truncate">₲${product.price}</div>
+            <div class="text-xs text-blue-600 truncate">${product.category}</div>
           </div>
         </div>
       `).join('');
@@ -617,6 +648,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Update shipping cost when manually changed
   document.getElementById('shipping-cost').addEventListener('input', updateTotals);
+
+  // Gift order toggle functionality
+  const giftOrderCheckbox = document.getElementById('is-gift-order');
+  const giftRecipientFields = document.getElementById('gift-recipient-fields');
+  const giftHelperText = document.getElementById('gift-helper-text');
+
+  giftOrderCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+      giftRecipientFields.classList.remove('hidden');
+      giftHelperText.innerHTML = '<p class="text-xs text-green-600">✓ Configurando pedido como regalo - complete la información del destinatario</p>';
+    } else {
+      giftRecipientFields.classList.add('hidden');
+      giftHelperText.innerHTML = '<p class="text-xs text-gray-500">💡 Para regalos, completaremos la información del destinatario para una entrega perfecta</p>';
+      
+      // Clear gift fields when unchecked
+      giftRecipientFields.querySelectorAll('input, textarea').forEach(field => {
+        field.value = '';
+      });
+      giftRecipientFields.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+    }
+  });
 
   // Click outside to hide search results
   document.addEventListener('click', function(e) {
