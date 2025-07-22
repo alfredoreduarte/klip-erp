@@ -2,7 +2,11 @@ require "test_helper"
 
 class WahaSessionTest < ActiveSupport::TestCase
   setup do
-    # Clean up any existing sessions
+    # Clean up any existing data in proper order
+    MessageReaction.delete_all
+    MediaFile.delete_all
+    Message.delete_all
+    Chat.delete_all
     WahaSession.delete_all
   end
 

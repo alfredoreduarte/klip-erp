@@ -62,11 +62,14 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
-  # Allow view rendering when referenced assets are not precompiled/built in tests
+    # Allow view rendering when referenced assets are not precompiled/built in tests
   config.assets.unknown_asset_fallback = true
 
   # Ensure assets are built for tests
   config.assets.compile = true
+
+  # Disable asset pipeline warnings in tests
+  config.assets.quiet = true
 
   # Allow internal service calls during tests
   config.hosts << "store"

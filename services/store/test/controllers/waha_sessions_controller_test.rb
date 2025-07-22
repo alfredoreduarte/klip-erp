@@ -2,8 +2,12 @@ require "test_helper"
 require "webmock/minitest"
 
 class WahaSessionsControllerTest < ActionDispatch::IntegrationTest
-  setup do
-    # Clean up any existing sessions
+    setup do
+    # Clean up any existing data in proper order
+    MessageReaction.delete_all
+    MediaFile.delete_all
+    Message.delete_all
+    Chat.delete_all
     WahaSession.delete_all
 
     # Stub WAHA API endpoints used by WahaClient#start_session

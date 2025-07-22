@@ -3,7 +3,16 @@ require "webmock/minitest"
 
 class ChatsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @chat = Chat.create!(wa_id: "controller_test_123456789@c.us")
+    # Clean up any existing data
+    Message.delete_all
+    Chat.delete_all
+    WahaSession.delete_all
+
+    # Create WAHA session first
+    @waha_session = WahaSession.create!(name: "default", status: :connected)
+
+    # Create chat with WAHA session
+    @chat = Chat.create!(wa_id: "controller_test_123456789@c.us", waha_session: @waha_session)
 
     # Stub WAHA API calls
     stub_request(:get, "http://waha:3000/api/default/chats/overview")
