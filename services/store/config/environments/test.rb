@@ -65,10 +65,13 @@ Rails.application.configure do
   # Allow view rendering when referenced assets are not precompiled/built in tests
   config.assets.unknown_asset_fallback = true
 
+  # Ensure assets are built for tests
+  config.assets.compile = true
+
   # Allow internal service calls during tests
   config.hosts << "store"
   config.hosts << "www.example.com"
-  
+
   # Active Storage configuration for tests
   config.active_storage.service = :local
 end
