@@ -1,9 +1,10 @@
 <h1 class="text-xl font-semibold mb-4">WhatsApp Sessions</h1>
 
 <%= form_with url: "/waha/sessions", method: :post, local: true, class: "mb-6 flex gap-2" do |f| %>
-  <%= f.text_field :name, placeholder: "Session name", class: "border rounded px-2 py-1" %>
+  <%= f.text_field :name, value: "default", readonly: true, class: "border rounded px-2 py-1 bg-gray-100" %>
   <%= f.submit "Start Session", class: "bg-green-600 text-white px-3 py-1 rounded" %>
 <% end %>
+<p class="text-sm text-gray-600 mb-4">Only one WhatsApp session is allowed and it must be named "default".</p>
 
 <table class="min-w-full text-sm">
   <thead>

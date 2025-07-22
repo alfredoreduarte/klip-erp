@@ -1,7 +1,14 @@
 require "test_helper"
+require "webmock/minitest"
 
 class WahaWebhooksControllerTest < ActionDispatch::IntegrationTest
-  setup do
+    setup do
+    # Clean up any existing data
+    MediaFile.delete_all
+    Message.delete_all
+    Chat.delete_all
+    WahaSession.delete_all
+
     @payload = {
       event: "message",
       payload: {
@@ -11,8 +18,16 @@ class WahaWebhooksControllerTest < ActionDispatch::IntegrationTest
         type: "text",
         body: "Hola",
         timestamp: 1_720_000_000
-      }
+      },
+      session: "default"
     }.to_json
+
+    # Stub the profile picture request
+    stub_request(:get, "http://waha:3000/api/contacts/profile-picture?contactId=123456789@c.us")
+      .to_return(status: 200, body: { picture: "http://example.com/profile.jpg" }.to_json, headers: { "Content-Type" => "application/json" })
+
+    # Create a default session to avoid uniqueness issues
+    WahaSession.create!(name: "default", status: :connected)
   end
 
   test "creates chat and message for incoming message event" do

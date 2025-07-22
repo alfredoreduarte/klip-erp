@@ -80,8 +80,8 @@ module ApplicationHelper
     uri = URI(media_url)
     path = uri.path
 
-    # Remove /api/files/ prefix
-    file_path = path.gsub(/^\/api\/files\//, '')
+    # Remove /api/files/ prefix and any session name
+    file_path = path.gsub(/^\/api\/files\/[^\/]+\//, '').gsub(/^\/api\/files\//, '')
 
     # Construct the correct URL for our proxy
     "/api/files/#{file_path}"

@@ -4,7 +4,7 @@ require "webmock/minitest"
 class MessagesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @chat = Chat.create!(wa_id: "595981234567@c.us")
-    stub_request(:post, "http://localhost:4000/api/sendText")
+    stub_request(:post, "http://waha:3000/api/sendText")
       .to_return(status: 200, body: { success: true }.to_json)
   end
 

@@ -4,6 +4,8 @@ require "webmock/minitest"
 class ChatTest < ActiveSupport::TestCase
   setup do
     # Clean up any existing data
+    MessageReaction.delete_all
+    MediaFile.delete_all
     Message.delete_all
     Chat.delete_all
     WahaSession.delete_all

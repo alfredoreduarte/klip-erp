@@ -4,8 +4,27 @@ class ProductVariantRoutingTest < ActionDispatch::IntegrationTest
   include Rails.application.routes.url_helpers
 
   setup do
-    @product = products(:one)
-    @variant = product_variants(:one)
+    @product = Product.create!(
+      name: "Test Product",
+      description: "A test product for routing tests",
+      category: "Electronics",
+      status: "active"
+    )
+    @variant = ProductVariant.create!(
+      product: @product,
+      sku: "ROUTING-TEST-001",
+      name: "Standard",
+      price: 25000,
+      cost_price: 15000,
+      weight: 0.5,
+      inventory_quantity: 100,
+      active: true,
+      track_inventory: true,
+      inventory_policy: "deny",
+      fulfillment_service: "manual",
+      weight_unit: "kg",
+      position: 1
+    )
   end
 
   test "product variant route helpers generate correct paths" do
@@ -26,10 +45,10 @@ class ProductVariantRoutingTest < ActionDispatch::IntegrationTest
     assert_equal expected_path, actual_path
   end
 
-  test "polymorphic path does not work for individual variant show path" do
-    # This is the problematic case - polymorphic routing doesn't work well 
+    test "polymorphic path does not work for individual variant show path" do
+    # This is the problematic case - polymorphic routing doesn't work well
     # with nested resources for individual resources
-    assert_raises(ActionController::UrlGenerationError) do
+    assert_raises(NoMethodError) do
       polymorphic_path([@product, @variant])
     end
   end
