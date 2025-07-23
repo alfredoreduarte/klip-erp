@@ -38,7 +38,7 @@ class ProductTest < ActiveSupport::TestCase
   test "should have many product variants" do
     @product.save!
     variant = @product.product_variants.create!(
-      sku: "TEST-001",
+      sku: "PRODUCT-TEST-001",
       price: 120.00,
       cost_price: 60.00
     )
@@ -48,12 +48,12 @@ class ProductTest < ActiveSupport::TestCase
   test "should calculate total inventory" do
     @product.save!
     @product.product_variants.create!(
-      sku: "TEST-001",
+      sku: "PRODUCT-TEST-002",
       price: 120.00,
       inventory_quantity: 10
     )
     @product.product_variants.create!(
-      sku: "TEST-002",
+      sku: "PRODUCT-TEST-003",
       price: 110.00,
       inventory_quantity: 5
     )
@@ -66,7 +66,7 @@ class ProductTest < ActiveSupport::TestCase
       name: "Inactive Product",
       status: "inactive"
     )
-    
+
     assert_includes Product.active, @product
     assert_not_includes Product.active, inactive_product
   end
@@ -74,7 +74,7 @@ class ProductTest < ActiveSupport::TestCase
   test "should check if product is active" do
     @product.status = "active"
     assert @product.active?
-    
+
     @product.status = "inactive"
     assert_not @product.active?
   end

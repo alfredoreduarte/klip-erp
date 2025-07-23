@@ -1,0 +1,238 @@
+<div class="min-h-screen bg-gray-50 py-6">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Pedido <%= @order.order_number %></h1>
+          <nav class="text-sm text-gray-500 mt-2">
+            <%= link_to "Home", root_path, class: "hover:text-blue-600" %> > 
+            <%= link_to "Pedidos", orders_path, class: "hover:text-blue-600" %> > 
+            <%= @order.order_number %>
+          </nav>
+        </div>
+        <div class="flex space-x-2">
+          <%= link_to "Editar", edit_order_path(@order), class: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200" %>
+          <% if @order.can_be_cancelled? %>
+            <%= link_to "Cancelar", order_path(@order), method: :delete, data: { confirm: "¿Estás seguro?" }, class: "bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Order Details -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Order Status -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Estado del Pedido</h2>
+          <div class="flex items-center">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+              <%= @order.status == 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                  @order.status == 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                  @order.status == 'packed' ? 'bg-purple-100 text-purple-800' :
+                  @order.status == 'shipped' ? 'bg-indigo-100 text-indigo-800' :
+                  @order.status == 'delivered' ? 'bg-green-100 text-green-800' :
+                  @order.status == 'cancelled' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800' %>">
+              <%= @order.status.humanize %>
+            </span>
+            <span class="ml-4 text-sm text-gray-500">
+              Creado <%= @order.created_at.strftime("%d/%m/%Y a las %H:%M") %>
+            </span>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Productos</h2>
+          <div class="space-y-4">
+            <% @order.order_items.each do |item| %>
+              <div class="flex items-center justify-between py-3 border-b last:border-b-0">
+                <div class="flex-1">
+                  <div class="font-medium text-gray-900">
+                    <%= item.product_variant.display_name %>
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    Cantidad: <%= item.quantity %> • Precio unitario: ₲<%= item.unit_price.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="font-medium">
+                    ₲<%= item.total_price.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Información del Cliente</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Nombre</label>
+              <p class="mt-1 text-sm text-gray-900"><%= @order.customer_name %> <%= @order.customer_surname %></p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Teléfono</label>
+              <p class="mt-1 text-sm text-gray-900"><%= @order.customer_phone %></p>
+            </div>
+            <% if @order.customer_email.present? %>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @order.customer_email %></p>
+              </div>
+            <% end %>
+            <% if @order.payment_method.present? %>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Método de Pago</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @order.payment_method.humanize %></p>
+              </div>
+            <% end %>
+          </div>
+          
+          <% if @order.customer_notes.present? %>
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700">Notas del Cliente</label>
+              <p class="mt-1 text-sm text-gray-900"><%= @order.customer_notes %></p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Shipping Information -->
+        <% if @order.shipping_address.present? || @order.shipping_city.present? %>
+          <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Información de Envío</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <% if @order.shipping_address.present? %>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Dirección</label>
+                  <p class="mt-1 text-sm text-gray-900"><%= @order.shipping_address %></p>
+                </div>
+              <% end %>
+              <% if @order.shipping_city.present? %>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Ciudad</label>
+                  <p class="mt-1 text-sm text-gray-900"><%= @order.shipping_city %></p>
+                </div>
+              <% end %>
+            </div>
+            
+            <% if @order.shipping_notes.present? %>
+              <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700">Notas de Envío</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @order.shipping_notes %></p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="lg:col-span-1">
+        <div class="bg-white shadow rounded-lg p-6 sticky top-6">
+          <h2 class="text-xl font-semibold mb-4">Resumen del Pedido</h2>
+          
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Subtotal</span>
+              <span>₲<%= @order.subtotal.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+            </div>
+            
+            <% if @order.shipping_amount > 0 %>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Envío</span>
+                <span>₲<%= @order.shipping_amount.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+              </div>
+            <% end %>
+            
+            <% if @order.tax_amount > 0 %>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Impuestos</span>
+                <span>₲<%= @order.tax_amount.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+              </div>
+            <% end %>
+            
+            <% if @order.discount_amount > 0 %>
+              <div class="flex justify-between text-green-600">
+                <span>Descuento</span>
+                <span>-₲<%= @order.discount_amount.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+              </div>
+            <% end %>
+            
+            <hr>
+            <div class="flex justify-between font-bold text-lg">
+              <span>Total</span>
+              <span>₲<%= @order.total_amount.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+            </div>
+          </div>
+
+          <!-- Payment Status -->
+          <div class="mt-6 pt-6 border-t">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-gray-700">Estado de Pago</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                <%= @order.fully_paid? ? 'bg-green-100 text-green-800' : 
+                    @order.partially_paid? ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800' %>">
+                <%= @order.fully_paid? ? 'Pagado' : @order.partially_paid? ? 'Parcial' : 'Pendiente' %>
+              </span>
+            </div>
+            
+            <% if @order.payments.any? %>
+              <div class="mt-3 space-y-2">
+                <% @order.payments.each do |payment| %>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-600"><%= payment.payment_method.humanize %></span>
+                    <span>₲<%= payment.amount.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+            
+            <% unless @order.fully_paid? %>
+              <div class="mt-3 text-sm">
+                <span class="text-gray-600">Saldo pendiente: </span>
+                <span class="font-medium text-red-600">₲<%= @order.remaining_balance.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse %></span>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Order Actions -->
+          <div class="mt-6 space-y-2">
+            <% if @order.pending? %>
+              <button class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
+                Confirmar Pedido
+              </button>
+            <% elsif @order.confirmed? %>
+              <button class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200">
+                Marcar Empacado
+              </button>
+            <% elsif @order.packed? %>
+              <button class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200">
+                Marcar Enviado
+              </button>
+            <% elsif @order.shipped? %>
+              <button class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
+                Marcar Entregado
+              </button>
+            <% end %>
+          </div>
+
+          <!-- Tracking Information -->
+          <% if @order.tracking_url.present? %>
+            <div class="mt-6 pt-6 border-t">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Seguimiento</label>
+              <a href="<%= @order.tracking_url %>" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm break-all">
+                <%= @order.tracking_url %>
+              </a>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 class Product < ApplicationRecord
   has_many :product_variants, dependent: :destroy
   has_many :inventory_lots, through: :product_variants
+  has_one_attached :image
   
   validates :name, presence: true, length: { minimum: 1, maximum: 255 }
   validates :status, inclusion: { in: %w[active inactive discontinued] }
@@ -57,5 +58,23 @@ class Product < ApplicationRecord
   
   def brands
     self.class.distinct.pluck(:brand).compact.sort
+  end
+  
+  def thumbnail_url
+    if image.attached?
+      Rails.application.routes.url_helpers.rails_blob_path(image, only_path: true)
+    else
+      # Return a placeholder image URL based on category
+      case category&.downcase
+      when 'electronics'
+        'https://via.placeholder.com/150x150/1E40AF/FFFFFF?text=📱+Electronics'
+      when 'ropa', 'calzado'
+        'https://via.placeholder.com/150x150/BE185D/FFFFFF?text=👕+Fashion'
+      when 'hogar', 'cocina', 'iluminación'
+        'https://via.placeholder.com/150x150/059669/FFFFFF?text=🏠+Home'
+      else
+        'https://via.placeholder.com/150x150/4B5563/FFFFFF?text=📦+Product'
+      end
+    end
   end
 end

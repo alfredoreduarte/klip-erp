@@ -1,0 +1,15 @@
+one:
+  name: "Test Product"
+  description: "A test product for routing tests"
+  category: "Electronics"
+  status: "active"
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.day.ago %>
+
+two:
+  name: "Another Test Product"
+  description: "Another test product"
+  category: "Books"
+  status: "active"
+  created_at: <%= 2.weeks.ago %>
+  updated_at: <%= 2.days.ago %>

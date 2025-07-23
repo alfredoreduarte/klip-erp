@@ -1,0 +1,17 @@
+<div id="typing-indicator" class="typing-indicator" style="display:none">
+  <div class="flex items-center space-x-2">
+    <div class="w-8 h-8 rounded-full bg-[#6b7c85] text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
+      <% initials = (chat.name.presence || chat.wa_id).split(/\s/).map { _1.first }.join.upcase[0,2] rescue '?' %>
+      <%= initials %>
+    </div>
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-[#667781]">typing</span>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Typing indicator visibility controlled by Turbo Stream updates -->

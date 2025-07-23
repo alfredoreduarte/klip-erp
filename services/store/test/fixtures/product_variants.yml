@@ -1,0 +1,33 @@
+one:
+  product: one
+  sku: "TEST-001"
+  name: "Standard"
+  price: 25000
+  cost_price: 15000
+  weight: 0.5
+  inventory_quantity: 100
+  active: true
+  track_inventory: true
+  inventory_policy: "deny"
+  fulfillment_service: "manual"
+  weight_unit: "kg"
+  position: 1
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.day.ago %>
+
+two:
+  product: two
+  sku: "TEST-002"
+  name: "Premium"
+  price: 45000
+  cost_price: 25000
+  weight: 0.8
+  inventory_quantity: 50
+  active: true
+  track_inventory: true
+  inventory_policy: "deny"
+  fulfillment_service: "manual"
+  weight_unit: "kg"
+  position: 1
+  created_at: <%= 2.weeks.ago %>
+  updated_at: <%= 2.days.ago %>

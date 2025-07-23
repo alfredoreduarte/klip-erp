@@ -6,11 +6,12 @@ class WahaWebhooksController < ApplicationController
   def receive
     # WAHA sends { event: "...", payload: { ... } }  (modern) or
     # { event: "...", data: { ... } } (older/engine.event)
+    Rails.logger.info "WAHA webhook received: #{params.inspect}"
     event = params[:event]
     data  = params[:data] || params[:payload] || {}
 
     # Persist a lightweight event record for ops dashboard
-    WahaEvent.create!(session_name: params[:session] || nil, event_name: event, payload: data)
+    WahaEvent.create!(session_name: params[:session] || nil, event_name: event, payload: data.to_unsafe_h)
 
     case event
     when "messages.upsert"
@@ -18,6 +19,18 @@ class WahaWebhooksController < ApplicationController
       head :ok
     when "message"
       handle_single_message(data)
+      head :ok
+    when "message.reaction"
+      handle_message_reaction(data)
+      head :ok
+    when "message.pin"
+      handle_message_pin(data)
+      head :ok
+    when "message.unpin"
+      handle_message_unpin(data)
+      head :ok
+    when "presence.update"
+      handle_presence_update(data)
       head :ok
     else
       Rails.logger.info "Unhandled WAHA event: #{event}"
@@ -42,6 +55,13 @@ class WahaWebhooksController < ApplicationController
     if waha_session && chat.waha_session_id.nil?
       chat.update(waha_session: waha_session)
     end
+    # Always attempt to fetch latest profile picture
+    chat.refresh_profile!(session_name)
+
+    # Update name from message data if available and not already set
+    if msg["pushName"].present?
+      chat.update_name_from_message!(msg["pushName"])
+    end
 
     body_text = if msg["body"].present?
                   msg["body"]
@@ -49,14 +69,102 @@ class WahaWebhooksController < ApplicationController
                   msg.dig("text", "body")
                 end
 
+    # Handle reply messages
+    reply_to_message = nil
+    if msg["replyTo"] || msg["quotedMessageId"]
+      reply_message_id = msg["replyTo"] || msg["quotedMessageId"]
+      reply_to_message = chat.messages.find_by(wa_message_id: reply_message_id)
+    end
+
     chat.messages.create!(
       wa_message_id: msg["id"],
       direction: msg["fromMe"] ? :outgoing : :incoming,
-      message_type: msg["type"] || "text",
+      message_type: infer_message_type(msg),
       body: body_text,
-      payload: msg,
-      sent_at: (Time.at(msg["timestamp"]).in_time_zone rescue nil)
+      payload: msg.to_unsafe_h,
+      sent_at: (Time.at(msg["timestamp"]).in_time_zone rescue nil),
+      reply_to_message: reply_to_message
     )
+  end
+
+  def handle_message_reaction(data)
+    message_id = data["id"] || data["messageId"]
+    return if message_id.blank?
+
+    message = Message.find_by(wa_message_id: message_id)
+    return unless message
+
+    user_wa_id = data["from"] || data["user_wa_id"]
+    reaction = data["reaction"]
+
+    return if user_wa_id.blank? || reaction.blank?
+
+    # Remove existing reaction from this user to this message
+    message.message_reactions.where(user_wa_id: user_wa_id).destroy_all
+
+    # Add new reaction (unless it's a removal - empty reaction)
+    unless reaction.empty?
+      message.message_reactions.create!(
+        reaction: reaction,
+        user_wa_id: user_wa_id
+      )
+    end
+
+    # Broadcast the updated message to refresh the UI
+    message.broadcast_replace_later_to message.chat,
+                                      target: "message_#{message.id}",
+                                      partial: "messages/message",
+                                      locals: { message: message }
+  end
+
+  def handle_message_pin(data)
+    message_id = data["id"] || data["messageId"]
+    return if message_id.blank?
+
+    message = Message.find_by(wa_message_id: message_id)
+    return unless message
+
+    # Update local pin state
+    message.update_column(:pinned_at, Time.current)
+
+    # Broadcast the updated message to refresh the UI
+    message.broadcast_replace_later_to message.chat,
+                                      target: "message_#{message.id}",
+                                      partial: "messages/message",
+                                      locals: { message: message }
+  end
+
+  def handle_message_unpin(data)
+    message_id = data["id"] || data["messageId"]
+    return if message_id.blank?
+
+    message = Message.find_by(wa_message_id: message_id)
+    return unless message
+
+    # Update local pin state
+    message.update_column(:pinned_at, nil)
+
+    # Broadcast the updated message to refresh the UI
+    message.broadcast_replace_later_to message.chat,
+                                      target: "message_#{message.id}",
+                                      partial: "messages/message",
+                                      locals: { message: message }
+  end
+
+  # Determine message_type when WAHA omits the `type` field (e.g., location)
+  def infer_message_type(payload)
+    return 'location' if payload['location'].present? || (payload['lat'].present? && payload['lng'].present?)
+    return 'document' if payload['document'].present? || payload.dig('_data', 'type') == 'document'
+
+    # Check for type in various locations in the payload
+    type = payload['type'] ||
+           payload.dig('_data', 'type') ||
+           payload.dig('text', 'type')
+
+    # Map 'ptt' (push-to-talk) to 'audio' for proper UI handling
+    type = 'audio' if type == 'ptt'
+
+    type.presence || 'text'
   end
 
   def handle_messages_upsert(data)
@@ -72,19 +180,67 @@ class WahaWebhooksController < ApplicationController
       if waha_session && chat.waha_session_id.nil?
         chat.update(waha_session: waha_session)
       end
+      # Always attempt to fetch latest profile picture
+      chat.refresh_profile!(session_name)
+
+      # Update name from message data if available and not already set
+      if msg_payload["pushName"].present?
+        chat.update_name_from_message!(msg_payload["pushName"])
+      end
 
       # Determine direction based on `fromMe` flag
       direction = msg_payload["fromMe"] ? :outgoing : :incoming
+
+      # Handle reply messages
+      reply_to_message = nil
+      if msg_payload["replyTo"] || msg_payload["quotedMessageId"]
+        reply_message_id = msg_payload["replyTo"] || msg_payload["quotedMessageId"]
+        reply_to_message = chat.messages.find_by(wa_message_id: reply_message_id)
+      end
 
       Message.create!(
         chat: chat,
         wa_message_id: msg_payload["id"],
         direction: direction,
-        message_type: msg_payload["type"] || "text",
+        message_type: infer_message_type(msg_payload),
         body: msg_payload.dig("text", "body") || msg_payload["body"],
-        payload: msg_payload,
-        sent_at: (Time.at(msg_payload["timestamp"]).utc rescue nil)
+        payload: msg_payload.to_unsafe_h,
+        sent_at: (Time.at(msg_payload["timestamp"]).utc rescue nil),
+        reply_to_message: reply_to_message
       )
     end
+  end
+
+  def handle_presence_update(payload)
+    chat_wa_id = payload["id"] || payload["chatId"]
+    return if chat_wa_id.blank?
+
+    chat = Chat.find_by(wa_id: chat_wa_id)
+    return unless chat
+
+    # Determine if any participant (other than us) is typing/composing.
+    typing = Array(payload["presences"]).any? do |p|
+      status = p["lastKnownPresence"]
+
+      # Skip entries that refer to our own account. WAHA marks these with
+      # `isSelf` (boolean). Fallback to checking `participant` when present
+      # but equal to the session wid (if available) or not equal to the chat id
+      next false if p["isSelf"]
+
+      participant = p["participant"]
+      # In 1-to-1 chats `participant` may be nil. When present, ignore if it
+      # matches our chat wa_id (the remote contact) OR looks like our own wa_id.
+      # For our purpose we only care about other participant(s), so require a
+      # presence entry that is NOT self and not the chat itself (group case).
+
+      %w[typing composing recording-audio].include?(status)
+    end
+
+    Turbo::StreamsChannel.broadcast_update_to(
+      "chat_presence_#{chat.id}",
+      target: "typing-indicator",
+      partial: "chats/typing_indicator",
+      locals: { chat: chat, show: typing }
+    )
   end
 end

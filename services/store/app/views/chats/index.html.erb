@@ -1,24 +1,50 @@
-<h1 class="text-xl font-bold mb-4">
-  Chats
-  <% if defined?(@waha_session) && @waha_session.present? %>
-    for session <span class="font-semibold"><%= @waha_session.name %></span>
-    (<%= link_to "Back to sessions", waha_sessions_path, class: "text-blue-600 underline" %>)
-  <% end %>
-</h1>
-
-<ul class="space-y-2">
-  <% @chats.each do |chat| %>
-    <li>
-      <%= link_to chat_path(chat), class: "text-blue-600 hover:underline" do %>
-        <%= chat.name.presence || chat.wa_id %>
-        <% if chat.last_message_at.present? %>
-          <span class="text-xs text-gray-500 ml-2"><%= time_ago_in_words(chat.last_message_at) %> ago</span>
+<!-- WhatsApp-like chat interface -->
+<div class="whatsapp-chat-container h-screen flex flex-col">
+  <!-- Header -->
+  <div class="whatsapp-header">
+    <div class="whatsapp-header-avatar">
+      <% if defined?(@waha_session) && @waha_session.present? %>
+        <% if @waha_session.profile_pic_url.present? %>
+          <img src="<%= @waha_session.profile_pic_url %>" alt="session avatar" class="w-full h-full object-cover rounded-full" />
+        <% else %>
+          <%= @waha_session.name.first.upcase %>
         <% end %>
+      <% else %>
+        C
       <% end %>
-    </li>
-  <% end %>
-</ul>
+    </div>
+    <div class="whatsapp-header-info">
+      <div class="whatsapp-header-name">
+        <% if defined?(@waha_session) && @waha_session.present? %>
+          <%= @waha_session.display_name %> - Chats
+        <% else %>
+          All Chats
+        <% end %>
+      </div>
+      <div class="whatsapp-header-status">
+        <%= pluralize(@chats.size, 'chat') %> total
+        <% if defined?(@waha_session) && @waha_session.present? %>
+          | <%= link_to "Back to sessions", waha_sessions_path, class: "text-[#00a884] hover:underline" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
 
-<% if @chats.empty? %>
-  <p>No chats yet. Wait for WhatsApp traffic or send a message first.</p>
-<% end %>
+  <!-- Chat List -->
+  <div id="chats_list" data-controller="chat-list" class="flex-1 overflow-y-auto bg-white space-y-0">
+    <%= turbo_stream_from "chats" %>
+    <% if @chats.any? %>
+      <% @chats.each do |chat| %>
+        <%= render 'chat_list_item', chat: chat %>
+      <% end %>
+    <% else %>
+      <div class="flex items-center justify-center h-full text-[#667781]">
+        <div class="text-center">
+          <div class="text-6xl mb-4">💬</div>
+          <h3 class="text-lg font-medium mb-2">No chats yet</h3>
+          <p class="text-sm">Wait for WhatsApp messages or start a conversation</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

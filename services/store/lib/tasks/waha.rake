@@ -17,4 +17,47 @@ namespace :waha do
     File.binwrite(file_path, img_data)
     puts "QR code saved to #{file_path}. Open this image and scan it with WhatsApp → Linked devices."
   end
+
+  desc "Sync chats overview for all WAHA sessions and update last_message_at (usage: rake waha:sync_chats_overview)"
+  task :sync_chats_overview => :environment do
+    puts "Fetching chats overview from WAHA for all sessions..."
+    WahaSession.find_each do |session|
+      begin
+        session.sync_chats_overview!
+        puts " → Synced session '#{session.name}'"
+      rescue StandardError => e
+        warn " ! Failed to sync session '#{session.name}': #{e.message}"
+      end
+    end
+    puts "Done."
+  end
+
+  desc "Download media for existing messages that have media but no cached files (usage: rake waha:download_media)"
+  task :download_media => :environment do
+    puts "Downloading media for messages..."
+    Message.where.not(media_url: nil).find_each do |message|
+      begin
+        DownloadMediaJob.perform_now(message.id)
+        print "."
+      rescue => e
+        print "x"
+        warn "\nFailed to download media for message #{message.id}: #{e.message}"
+      end
+    end
+    puts "\nDone."
+  end
+
+  desc "Refresh profile pictures for all WAHA sessions (usage: rake waha:refresh_profile_pictures)"
+  task :refresh_profile_pictures => :environment do
+    puts "Refreshing profile pictures for all sessions..."
+    WahaSession.find_each do |session|
+      begin
+        session.refresh_profile_picture!
+        puts " → Refreshed session '#{session.name}'"
+      rescue StandardError => e
+        warn " ! Failed to refresh session '#{session.name}': #{e.message}"
+      end
+    end
+    puts "Done."
+  end
 end

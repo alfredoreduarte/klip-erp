@@ -10,9 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_22_024204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
 
   create_table "cart_items", force: :cascade do |t|
     t.bigint "cart_id", null: false
@@ -96,8 +124,38 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "waha_session_id"
+    t.string "profile_pic_url"
+    t.datetime "pinned_at"
+    t.index ["pinned_at"], name: "index_chats_on_pinned_at"
     t.index ["wa_id"], name: "index_chats_on_wa_id", unique: true
     t.index ["waha_session_id"], name: "index_chats_on_waha_session_id"
+  end
+
+  create_table "inventory_adjustments", force: :cascade do |t|
+    t.bigint "product_variant_id", null: false
+    t.string "adjustment_type", limit: 50, null: false
+    t.integer "quantity", null: false
+    t.string "reason", limit: 100
+    t.text "notes"
+    t.string "reference_number", limit: 50
+    t.integer "user_id"
+    t.decimal "cost_impact", precision: 10, scale: 2
+    t.integer "quantity_before", null: false
+    t.integer "quantity_after", null: false
+    t.jsonb "metadata", default: {}
+    t.boolean "approved", default: false
+    t.datetime "approved_at"
+    t.integer "approved_by_user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["adjustment_type"], name: "index_inventory_adjustments_on_adjustment_type"
+    t.index ["approved"], name: "index_inventory_adjustments_on_approved"
+    t.index ["created_at"], name: "index_inventory_adjustments_on_created_at"
+    t.index ["metadata"], name: "index_inventory_adjustments_on_metadata", using: :gin
+    t.index ["product_variant_id", "created_at"], name: "idx_on_product_variant_id_created_at_4e53fcc868"
+    t.index ["product_variant_id"], name: "index_inventory_adjustments_on_product_variant_id"
+    t.index ["reference_number"], name: "index_inventory_adjustments_on_reference_number"
+    t.index ["user_id"], name: "index_inventory_adjustments_on_user_id"
   end
 
   create_table "inventory_lots", force: :cascade do |t|
@@ -156,6 +214,25 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
     t.index ["status"], name: "index_marketing_campaigns_on_status"
   end
 
+  create_table "media_files", force: :cascade do |t|
+    t.string "filename"
+    t.string "mimetype"
+    t.bigint "message_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_media_files_on_message_id"
+  end
+
+  create_table "message_reactions", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.string "reaction", null: false
+    t.string "user_wa_id", null: false, comment: "WhatsApp user ID who reacted"
+    t.datetime "created_at", null: false
+    t.index ["message_id", "user_wa_id"], name: "index_message_reactions_on_message_id_and_user_wa_id", unique: true
+    t.index ["message_id"], name: "index_message_reactions_on_message_id"
+    t.index ["user_wa_id"], name: "index_message_reactions_on_user_wa_id"
+  end
+
   create_table "messages", force: :cascade do |t|
     t.bigint "chat_id", null: false
     t.string "wa_message_id", null: false, comment: "WhatsApp message ID"
@@ -166,7 +243,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
     t.datetime "sent_at", comment: "Original timestamp from WhatsApp"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "read_at"
+    t.bigint "reply_to_message_id"
+    t.datetime "pinned_at"
     t.index ["chat_id"], name: "index_messages_on_chat_id"
+    t.index ["read_at"], name: "index_messages_on_read_at"
+    t.index ["reply_to_message_id"], name: "index_messages_on_reply_to_message_id"
     t.index ["wa_message_id"], name: "index_messages_on_wa_message_id", unique: true
   end
 
@@ -245,6 +327,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
     t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "customer_surname"
+    t.string "shipping_city"
+    t.text "shipping_notes"
+    t.string "payment_method"
+    t.date "delivery_date"
+    t.time "delivery_time_start"
+    t.time "delivery_time_end"
+    t.string "recipient_name"
+    t.string "recipient_phone"
+    t.boolean "hide_prices"
+    t.boolean "is_gift_order"
     t.index ["channel"], name: "index_orders_on_channel"
     t.index ["customer_email"], name: "index_orders_on_customer_email"
     t.index ["customer_phone"], name: "index_orders_on_customer_phone"
@@ -462,16 +555,23 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_09_000610) do
     t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "profile_pic_url"
     t.index ["name"], name: "index_waha_sessions_on_name", unique: true
     t.index ["status"], name: "index_waha_sessions_on_status"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "cart_items", "carts"
   add_foreign_key "cart_items", "product_variants"
   add_foreign_key "carts", "chats"
   add_foreign_key "chats", "waha_sessions"
+  add_foreign_key "inventory_adjustments", "product_variants"
   add_foreign_key "inventory_lots", "product_variants"
+  add_foreign_key "media_files", "messages"
+  add_foreign_key "message_reactions", "messages"
   add_foreign_key "messages", "chats"
+  add_foreign_key "messages", "messages", column: "reply_to_message_id"
   add_foreign_key "order_attributions", "marketing_campaigns"
   add_foreign_key "order_attributions", "orders"
   add_foreign_key "order_items", "orders"

@@ -1,4 +1,5 @@
 require "faraday"
+require "cgi"
 
 class WahaClient
   class Error < StandardError; end
@@ -40,7 +41,7 @@ class WahaClient
         webhooks: [
           {
             url: webhook_url,
-            events: ["message"]
+            events: ["message", "message.pin", "message.unpin"]
           }
         ],
         metadata: metadata.presence
@@ -84,6 +85,108 @@ class WahaClient
 
   def delete_session(name: "default")
     res = @conn.delete("/api/sessions/#{name}")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  def start_typing(phone_number:, session: "default")
+    post("/api/startTyping", {
+      chatId: "#{phone_number}@c.us",
+      session: session
+    })
+  end
+
+  # Inform WAHA that typing has stopped for the given chat.
+  # According to WAHA docs this resets the presence status back to "available".
+  def stop_typing(phone_number:, session: "default")
+    post("/api/stopTyping", {
+      chatId: "#{phone_number}@c.us",
+      session: session
+    })
+  end
+
+  # Fetch contact profile picture.
+  # Returns a hash with key :picture (may be nil if not available).
+  # WAHA endpoint: GET /api/contacts/profile-picture?contactId={wa_id}
+  def contact_profile_picture(wa_id:, session: "default")
+    res = @conn.get("/api/contacts/profile-picture", { contactId: wa_id })
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    # WAHA returns { profilePictureURL: "url" } or { profilePictureURL: null }
+    picture_url = res.body[:profilePictureURL]
+
+    { picture: picture_url }
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Fetch session profile information.
+  # Returns a hash with keys :id, :name, :picture (may be nil if not available).
+  # WAHA endpoint: GET /api/{session}/profile
+  def session_profile(session: "default")
+    res = @conn.get("/api/#{session}/profile")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    # WAHA returns { id: "...", name: "...", picture: "url" } or { picture: null }
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Fetch messages for a specific chat from WAHA.
+  # Returns an array of message objects.
+  # WAHA endpoint: GET /api/{session}/chats/{chatId}/messages
+  def chat_messages(chat_id:, session: "default", limit: 100, offset: 0)
+    params = { limit: limit, offset: offset }
+    res = @conn.get("/api/#{session}/chats/#{chat_id}/messages", params)
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Fetch chats overview for a specific session. This endpoint returns high-level
+  # information for each chat (id, name, lastMessageTimestamp, unreadCount, etc.)
+  # WAHA endpoint: GET /api/{session}/chats/overview
+  def chats_overview(session: "default")
+    res = @conn.get("/api/#{session}/chats/overview")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Fetch a single message by ID
+  # WAHA endpoint: GET /api/{session}/chats/{chatId}/messages/{messageId}
+  def get_message(chat_id:, message_id:, session: "default")
+    res = @conn.get("/api/#{session}/chats/#{chat_id}/messages/#{message_id}")
+    raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
+
+    res.body
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Pin a message in a chat
+  # WAHA endpoint: POST /api/{session}/chats/{chatId}/messages/{messageId}/pin
+  # Duration options: 86400 (24 hours), 604800 (7 days), 2592000 (30 days)
+  def pin_message(chat_id:, message_id:, session: "default", duration: 86400)
+    post("/api/#{session}/chats/#{chat_id}/messages/#{message_id}/pin", {
+      duration: duration
+    })
+  rescue Faraday::Error => e
+    raise Error, e.message
+  end
+
+  # Unpin a message in a chat
+  # WAHA endpoint: POST /api/{session}/chats/{chatId}/messages/{messageId}/unpin
+  def unpin_message(chat_id:, message_id:, session: "default")
+    res = @conn.post("/api/#{session}/chats/#{chat_id}/messages/#{message_id}/unpin")
     raise Error, "WAHA error: #{res.status} #{res.body}" unless res.success?
 
     res.body

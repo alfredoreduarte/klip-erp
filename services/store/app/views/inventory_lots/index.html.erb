@@ -1,0 +1,277 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Inventory Lots</h1>
+        <p class="text-sm text-gray-500 mt-1">Track individual inventory receipts and lot-based stock</p>
+      </div>
+      
+      <div class="flex gap-3">
+        <%= link_to new_inventory_lot_path, 
+            class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          New Lot
+        <% end %>
+        
+        <%= link_to expiring_inventory_lots_path, 
+            class: "inline-flex items-center px-4 py-2 border border-orange-300 text-sm font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          Expiring Soon
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Total Lots</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @total_lots %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Active Lots</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @active_lots %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Expiring Soon</p>
+          <p class="text-lg font-semibold text-gray-900">
+            <%= link_to @expiring_lots, expiring_inventory_lots_path, 
+                class: "#{@expiring_lots > 0 ? 'text-orange-600 hover:text-orange-700' : 'text-gray-900'}" %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Suppliers</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @suppliers.count %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <%= form_with url: inventory_lots_path, method: :get, local: true, class: "p-4" do |form| %>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <%= form.select :status, 
+              options_for_select([
+                ['All Status', ''],
+                ['Active', 'active'],
+                ['Depleted', 'depleted'],
+                ['Expired', 'expired']
+              ], params[:status]),
+              {}, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+        
+        <div>
+          <%= form.select :supplier, 
+              options_for_select([['All Suppliers', '']] + @suppliers.map { |s| [s, s] }, params[:supplier]),
+              {}, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+        
+        <div>
+          <%= form.text_field :sku, placeholder: "Search by SKU...", 
+              value: params[:sku],
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+        
+        <div class="flex gap-2">
+          <%= form.submit 'Apply Filters', class: "flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700" %>
+          <%= link_to 'Clear', inventory_lots_path, class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Lots Table -->
+  <div class="bg-white shadow rounded-lg overflow-hidden">
+    <% if @lots.any? %>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Received</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @lots.each do |lot| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  <%= link_to lot.lot_number, lot, class: "hover:text-blue-600" %>
+                </div>
+                <% if lot.purchase_order_number.present? %>
+                  <div class="text-xs text-gray-500">PO: <%= lot.purchase_order_number %></div>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <% if lot.product_variant.image.attached? %>
+                    <%= image_tag lot.product_variant.image, class: "w-8 h-8 object-cover rounded mr-2" %>
+                  <% elsif lot.product_variant.product.image.attached? %>
+                    <%= image_tag lot.product_variant.product.image, class: "w-8 h-8 object-cover rounded mr-2 opacity-50" %>
+                  <% else %>
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-2 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                      </svg>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      <%= link_to lot.product_variant.product.name, lot.product_variant.product, class: "hover:text-blue-600" %>
+                    </div>
+                    <div class="text-sm text-gray-500"><%= lot.product_variant.sku %></div>
+                  </div>
+                </div>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">
+                  <%= lot.quantity_remaining %> / <%= lot.quantity_received %>
+                </div>
+                <div class="text-xs text-gray-500">
+                  <%= number_to_percentage((lot.quantity_remaining.to_f / lot.quantity_received) * 100, precision: 0) %> remaining
+                </div>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ₲<%= number_with_delimiter(lot.unit_cost) if lot.unit_cost %>
+                <% if lot.landed_cost_per_unit && lot.landed_cost_per_unit != lot.unit_cost %>
+                  <div class="text-xs text-gray-500">
+                    Landed: ₲<%= number_with_delimiter(lot.landed_cost_per_unit) %>
+                  </div>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900"><%= lot.supplier_name %></div>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= case lot.status
+                      when 'active' then 'bg-green-100 text-green-800'
+                      when 'depleted' then 'bg-gray-100 text-gray-800'
+                      when 'expired' then 'bg-red-100 text-red-800'
+                      else 'bg-gray-100 text-gray-800'
+                      end %>">
+                  <%= lot.status.capitalize %>
+                </span>
+                
+                <% if lot.expiry_date && lot.expiry_date <= 30.days.from_now && lot.active? %>
+                  <div class="text-xs text-orange-600 mt-1">
+                    <% if lot.expiry_date <= Date.current %>
+                      Expired
+                    <% else %>
+                      Expires <%= time_ago_in_words(lot.expiry_date) %>
+                    <% end %>
+                  </div>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= lot.received_date.strftime('%m/%d/%Y') if lot.received_date %>
+                <div class="text-xs text-gray-400">
+                  <%= time_ago_in_words(lot.received_date) %> ago
+                </div>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2">
+                  <%= link_to 'View', lot, class: "text-blue-600 hover:text-blue-900" %>
+                  <%= link_to 'Edit', edit_inventory_lot_path(lot), class: "text-gray-600 hover:text-gray-900" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <!-- Results Info -->
+      <div class="px-6 py-4 border-t border-gray-200 text-sm text-gray-500">
+        Showing <%= @lots.count %> inventory lots
+      </div>
+
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No inventory lots found</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          <% if params[:expiring] == 'true' %>
+            No lots are expiring in the next 30 days.
+          <% else %>
+            Start by receiving your first inventory lot.
+          <% end %>
+        </p>
+        <div class="mt-6">
+          <%= link_to new_inventory_lot_path, 
+              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Inventory Lot
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

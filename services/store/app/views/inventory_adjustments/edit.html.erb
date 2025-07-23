@@ -1,0 +1,211 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3">
+      <%= link_to @adjustment, class: "text-gray-400 hover:text-gray-600" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      <% end %>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Edit Inventory Adjustment</h1>
+        <p class="text-sm text-gray-500 mt-1"><%= @adjustment.reference_number %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert for approved adjustments -->
+  <% if @adjustment.approved? %>
+    <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Cannot Edit Approved Adjustment</h3>
+          <p class="mt-1 text-sm text-red-700">
+            This adjustment has been approved and cannot be modified. Please create a new adjustment to correct any errors.
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Form -->
+  <%= form_with model: @adjustment, local: true, class: "space-y-6" do |form| %>
+    <% if @adjustment.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-md p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul class="list-disc pl-5 space-y-1">
+                <% @adjustment.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Adjustment Details</h3>
+        <p class="mt-1 text-sm text-gray-500">Update the adjustment information below.</p>
+      </div>
+      
+      <div class="px-6 py-4 space-y-6">
+        <!-- Product Variant (Read-only) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Product Variant</label>
+          <div class="flex items-center p-3 bg-gray-50 rounded-md border">
+            <% if @adjustment.product_variant.image.attached? %>
+              <%= image_tag @adjustment.product_variant.image, class: "w-12 h-12 object-cover rounded mr-3" %>
+            <% elsif @adjustment.product_variant.product.image.attached? %>
+              <%= image_tag @adjustment.product_variant.product.image, class: "w-12 h-12 object-cover rounded mr-3 opacity-50" %>
+            <% else %>
+              <div class="w-12 h-12 bg-gray-100 rounded mr-3 flex items-center justify-center">
+                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+              </div>
+            <% end %>
+            <div class="flex-1">
+              <h4 class="text-sm font-medium text-gray-900"><%= @adjustment.product_variant.product.name %></h4>
+              <p class="text-sm text-gray-500">SKU: <%= @adjustment.product_variant.sku %></p>
+              <p class="text-xs text-gray-400">Current Stock: <%= @adjustment.product_variant.inventory_quantity %> units</p>
+            </div>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Product variant cannot be changed after creation</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Adjustment Type -->
+          <div>
+            <%= form.label :adjustment_type, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= form.select :adjustment_type, 
+                options_for_select(InventoryAdjustment::ADJUSTMENT_TYPES.map { |key, name| [name, key] }, @adjustment.adjustment_type),
+                {},
+                { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  disabled: @adjustment.approved? } %>
+          </div>
+
+          <!-- Quantity -->
+          <div>
+            <%= form.label :quantity, class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <div class="relative">
+              <%= form.number_field :quantity, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                  disabled: @adjustment.approved? %>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 text-sm">units</span>
+              </div>
+            </div>
+            <div class="mt-1 text-sm text-gray-500">
+              Use positive numbers for increases, negative for decreases.
+            </div>
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div>
+          <%= form.label :reason, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :reason, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              maxlength: 100,
+              disabled: @adjustment.approved? %>
+          <p class="mt-1 text-sm text-gray-500">Required: Brief explanation for this adjustment (max 100 characters)</p>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <%= form.label :notes, "Additional Notes", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_area :notes, rows: 3,
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              disabled: @adjustment.approved? %>
+        </div>
+
+        <!-- Reference Number -->
+        <div>
+          <%= form.label :reference_number, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :reference_number, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              disabled: @adjustment.approved? %>
+          <p class="mt-1 text-sm text-gray-500">Reference number for tracking this adjustment</p>
+        </div>
+
+        <!-- Cost Impact -->
+        <div>
+          <%= form.label :cost_impact, "Cost Impact", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-sm">₲</span>
+            </div>
+            <%= form.number_field :cost_impact, step: 0.01,
+                class: "w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                disabled: @adjustment.approved? %>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Override automatic cost calculation if needed</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current vs New Impact -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <h3 class="text-sm font-medium text-blue-800 mb-3">Current Adjustment Impact</h3>
+      <div class="grid grid-cols-3 gap-4 text-sm">
+        <div class="text-center">
+          <div class="text-blue-600 font-medium">Before</div>
+          <div class="text-lg font-semibold text-blue-900"><%= @adjustment.quantity_before %></div>
+        </div>
+        <div class="text-center">
+          <div class="text-blue-600 font-medium">Change</div>
+          <div class="text-lg font-semibold <%= @adjustment.positive_adjustment? ? 'text-green-600' : 'text-red-600' %>">
+            <%= @adjustment.positive_adjustment? ? '+' : '' %><%= @adjustment.quantity %>
+          </div>
+        </div>
+        <div class="text-center">
+          <div class="text-blue-600 font-medium">After</div>
+          <div class="text-lg font-semibold text-blue-900"><%= @adjustment.quantity_after %></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
+      <%= link_to 'Cancel', @adjustment, 
+          class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+      
+      <% unless @adjustment.approved? %>
+        <%= form.submit 'Update Adjustment',
+            class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700" %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <!-- Danger Zone -->
+  <% unless @adjustment.approved? %>
+    <div class="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
+      <h3 class="text-lg font-medium text-red-900 mb-2">Danger Zone</h3>
+      <p class="text-sm text-red-700 mb-4">
+        Once you delete an adjustment, there is no going back. The inventory change will be reversed.
+      </p>
+      <%= link_to 'Delete Adjustment', @adjustment, 
+          method: :delete,
+          data: { 
+            confirm: 'Are you sure? This will reverse the inventory change and cannot be undone.',
+            turbo_method: :delete
+          },
+          class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700" %>
+    </div>
+  <% end %>
+</div>

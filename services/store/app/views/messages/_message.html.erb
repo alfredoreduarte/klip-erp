@@ -1,11 +1,355 @@
-<div id="message_<%= message.id %>" class="flex items-start space-x-2 mb-2">
-  <% if message.outgoing? %>
-    <div class="ml-auto bg-green-100 text-green-900 px-3 py-2 rounded-lg max-w-xs">
-      <%= message.body.presence || "[#{message.message_type}]" %>
+<div id="message_<%= message.id %>" class="flex items-end space-x-2 mb-2 <%= 'ml-auto flex-row-reverse space-x-reverse' if message.outgoing? %> group relative">
+  <div class="<%= message.outgoing? ? 'bubble-outgoing' : 'bubble-incoming' %> relative <%= 'pinned' if message.pinned? %>">
+    <!-- SVG Tail -->
+    <% if message.outgoing? %>
+      <svg class="bubble-tail bubble-tail-outgoing" width="8" height="13" viewBox="0 0 8 13">
+        <path d="M1.533 0H0v11c0 1.105.896 2 2 2h6c-2.667-1.333-5.333-5.333-6.467-13z" fill="#d9fdd3"/>
+      </svg>
+    <% else %>
+      <svg class="bubble-tail bubble-tail-incoming" width="8" height="13" viewBox="0 0 8 13">
+        <path d="M6.467 0H8v11c0 1.105-.896 2-2 2H0c2.667-1.333 5.333-5.333 6.467-13z" fill="white"/>
+      </svg>
+    <% end %>
+
+    <!-- Reply Context -->
+    <% if message.reply? && message.reply_context %>
+      <div class="reply-context mb-2 p-2 bg-gray-100 rounded text-xs border-l-4 border-gray-300">
+        <div class="font-medium text-gray-700">
+          <%= message.reply_context.outgoing? ? 'You' : (message.chat.name || 'Contact') %>
+        </div>
+        <div class="text-gray-600 truncate">
+          <% case message.reply_context.message_type %>
+          <% when 'text' %>
+            <%= message.reply_context.body %>
+          <% when 'image' %>
+            📷 Image
+          <% when 'video' %>
+            🎥 Video
+          <% when 'audio', 'ptt' %>
+            🎵 Voice message
+          <% when 'document' %>
+            📄 Document
+          <% when 'location' %>
+            📍 Location
+          <% when 'contact' %>
+            👤 Contact
+          <% else %>
+            <%= message.reply_context.message_type&.titleize %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Detect legacy location messages stored as text with lat/lng in payload %>
+    <% effective_type = if message.message_type == 'text' && (message.payload['location'].present? || (message.payload['lat'].present? && message.payload['lng'].present?))
+                        'location'
+                      else
+                        message.message_type
+                      end %>
+
+    <%# Render different content based on message type %>
+    <% case effective_type %>
+    <% when 'text' %>
+      <div class="bubble-content">
+        <%= auto_link(message.body.to_s, html: { target: '_blank', class: 'text-blue-600 underline' }) %>
+      </div>
+
+    <% when 'document' %>
+      <div class="bubble-content">
+        <% document = message.payload['document'] || message.payload['_data'] || {} %>
+        <% filename = document['fileName'] || document['filename'] || 'Document' %>
+        <% file_size = document['fileLength'] || document['file_size'] %>
+        <% mime_type = document['mimetype'] || document['mimeType'] %>
+
+        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          <div class="flex-shrink-0">
+            <!-- File type icon based on mime type -->
+            <% if mime_type&.start_with?('image/') %>
+              <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+              </svg>
+            <% elsif mime_type&.start_with?('video/') %>
+              <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+              </svg>
+            <% elsif mime_type&.start_with?('audio/') %>
+              <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.793L4.5 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.5l3.883-3.793a1 1 0 011.617.793z" clip-rule="evenodd"/>
+              </svg>
+            <% elsif mime_type&.include?('pdf') %>
+              <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+              </svg>
+            <% else %>
+              <svg class="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+              </svg>
+            <% end %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-900 truncate"><%= filename %></span>
+              <% if file_size.present? %>
+                <span class="text-xs text-gray-500 flex-shrink-0">
+                  <%= number_to_human_size(file_size.to_i) %>
+          </span>
+              <% end %>
+            </div>
+            <div class="mt-1">
+              <span class="text-xs text-gray-500"><%= mime_type || 'Unknown type' %></span>
+            </div>
+            <div class="mt-2">
+              <% if message.media_file&.file&.attached? %>
+                <%= link_to "Download", message.media_file.file, class: "text-xs text-blue-600 hover:text-blue-800 underline", target: '_blank' %>
+              <% elsif message.media_url.present? %>
+                <%= link_to "Download", waha_file_url(message.media_url), class: "text-xs text-blue-600 hover:text-blue-800 underline", target: '_blank' %>
+              <% else %>
+                <span class="text-xs text-gray-400">File not available</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <% if message.body.present? %>
+          <div class="mt-2 text-sm"><%= auto_link(message.body.to_s) %></div>
+        <% end %>
+      </div>
+
+    <% when 'image' %>
+      <div class="bubble-content media-message relative">
+        <% if message.media_file&.file&.attached? %>
+          <%= link_to message.media_file.file, target: '_blank' do %>
+            <%= image_tag message.media_file.file, class: 'rounded max-w-full h-auto block' %>
+          <% end %>
+        <% else %>
+          <% media_url = message.media_url %>
+          <% if media_url.present? %>
+            <% url = waha_file_url(media_url) %>
+            <%= link_to url, target: '_blank' do %>
+              <%= image_tag url, class: 'rounded max-w-full h-auto block', onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+              <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
+                📷 Image (click to view)
+                <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
+                <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded">
+              📷 Image not available
+              <br><small class="text-xs text-gray-400">Media files are temporarily stored in WAHA and may be cleaned up</small>
+            </div>
+          <% end %>
+        <% end %>
+        <% if message.body.present? %>
+          <div class="mt-1 text-sm px-2 pb-2"><%= auto_link(message.body.to_s) %></div>
+        <% end %>
+      </div>
+
+    <% when 'video' %>
+      <div class="bubble-content">
+        <% if message.media_file&.file&.attached? %>
+          <%= video_tag message.media_file.file, controls: true, class: 'rounded max-w-full h-60 block' %>
+        <% else %>
+          <% media_url = message.media_url %>
+          <% if media_url.present? %>
+            <% url = waha_file_url(media_url) %>
+            <%= video_tag url, controls: true, class: 'rounded max-w-full h-60 block', onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
+              🎥 Video (click to view)
+              <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
+              <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
+            </div>
+          <% else %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded">
+              🎥 Video not available
+              <br><small class="text-xs text-gray-400">Media files are temporarily stored in WAHA and may be cleaned up</small>
+            </div>
+          <% end %>
+        <% end %>
+        <% if message.body.present? %>
+          <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
+        <% end %>
+      </div>
+
+    <% when 'audio', 'ptt' %>
+      <div class="bubble-content">
+        <% if message.media_file&.file&.attached? %>
+          <%= audio_tag message.media_file.file, controls: true %>
+        <% else %>
+          <% media_url = message.media_url %>
+          <% if media_url.present? %>
+            <% url = waha_file_url(media_url) %>
+            <%= audio_tag url, controls: true, onerror: "this.style.display='none'; this.nextElementSibling.style.display='block';" %>
+            <div class="text-gray-500 text-sm bg-gray-100 p-4 rounded" style="display: none;">
+              🎵 Audio (click to play)
+              <br><small class="text-xs text-gray-400">File: <%= File.basename(media_url) %></small>
+              <br><small class="text-xs text-gray-400">Note: Media files are temporarily stored and may not be available</small>
+            </div>
+          <% else %>
+            <!-- Improved audio message UI when file is not available -->
+            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.793L4.5 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.5l3.883-3.793a1 1 0 011.617.793zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-900">Voice Message</span>
+                  <span class="text-xs text-gray-500">
+                    <% if message.payload.dig('_data', 'duration').present? %>
+                      <%= message.payload.dig('_data', 'duration') %>s
+                    <% else %>
+                      Audio
+                    <% end %>
+                  </span>
+                </div>
+                <div class="mt-1">
+                  <div class="flex items-center space-x-1">
+                    <div class="flex-1 bg-gray-200 rounded-full h-2">
+                      <div class="bg-gray-400 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500">0:00</span>
+                  </div>
+                </div>
+                <div class="mt-2 flex items-center space-x-2">
+                  <button class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" disabled>
+                    <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                  <span class="text-xs text-gray-500">Audio file not available</span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+        <% if message.body.present? && message.body != "[ptt]" %>
+          <div class="mt-1 text-sm"><%= auto_link(message.body.to_s) %></div>
+        <% end %>
+      </div>
+
+    <% when 'location' %>
+      <% loc = message.payload['location'] || {} %>
+      <% lat = loc['latitude'] || loc['lat'] || message.payload['lat'] %>
+      <% lng = loc['longitude'] || loc['lng'] || message.payload['lng'] %>
+      <% lat_f = lat.to_f.round(6) if lat.present? %>
+      <% lng_f = lng.to_f.round(6) if lng.present? %>
+      <% maps_link = "https://maps.google.com/?q=#{lat_f},#{lng_f}" %>
+      <% base64_thumb = message.body.to_s.strip %>
+      <% if base64_thumb.present? && base64_thumb.match?(/^[A-Za-z0-9+\/]+={0,2}$/) %>
+        <% map_img = "data:image/jpeg;base64,#{base64_thumb}" %>
+      <% else %>
+        <% map_img = "https://staticmap.openstreetmap.de/staticmap.php?center=#{lat_f},#{lng_f}&zoom=15&size=400x200&markers=#{lat_f},#{lng_f},red" %>
+      <% end %>
+
+      <div class="bubble-content media-message relative">
+        <%= link_to maps_link, target: '_blank' do %>
+          <%= image_tag map_img, class: 'rounded max-w-full h-40 object-cover block' %>
+        <% end %>
+        <% loc_name = loc['name'].presence || message.payload['name'].presence || message.payload['loc'].presence %>
+        <% loc_address = loc['address'].presence || message.payload['address'].presence %>
+        <% if loc_name.present? || loc_address.present? %>
+          <div class="mt-1 text-sm px-2 pb-2 text-left">
+            <% if loc_name.present? %>
+              <p class="font-semibold"><%= loc_name %></p>
+            <% end %>
+            <% if loc_address.present? %>
+              <p class="text-xs text-gray-600"><%= loc_address %></p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+    <% when 'contact' %>
+      <div class="bubble-content">
+        <% contact = message.payload['contact'] || message.payload['contacts']&.first || {} %>
+        <div class="p-2 border rounded text-sm bg-gray-50">
+          <p class="font-semibold"><%= contact['name'] || 'Contact' %></p>
+          <p><%= contact['phone'] || contact['wa_id'] %></p>
+        </div>
+      </div>
+
+    <% else %>
+      <div class="bubble-content">
+        <%= message.body.presence || "[#{message.message_type}]" %>
+      </div>
+    <% end %>
+
+    <!-- Pin Indicator -->
+    <% if message.pinned? %>
+      <div class="pin-indicator mt-1 flex items-center text-xs text-gray-500">
+        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+        </svg>
+        <span>Pinned</span>
+      </div>
+    <% end %>
+
+    <!-- Message Actions (Pin/Unpin) -->
+    <div class="message-actions absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      <% if message.pinned? %>
+        <%= button_to unpin_chat_message_path(message.chat, message), method: :patch, class: "p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors", title: "Unpin message" do %>
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+        <% end %>
+      <% else %>
+        <%= button_to pin_chat_message_path(message.chat, message), method: :patch, class: "p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors", title: "Pin message" do %>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+          </svg>
+        <% end %>
+      <% end %>
     </div>
-  <% else %>
-    <div class="bg-gray-100 text-gray-900 px-3 py-2 rounded-lg max-w-xs">
-      <%= message.body.presence || "[#{message.message_type}]" %>
-    </div>
-  <% end %>
+
+    <!-- Message Reactions -->
+    <% if message.message_reactions.any? %>
+      <div class="reactions-container mt-1 flex flex-wrap gap-1">
+        <% message.reactions_summary.each do |reaction, count| %>
+          <div class="reaction-badge bg-gray-100 rounded-full px-2 py-1 text-xs flex items-center space-x-1">
+            <span class="reaction-emoji"><%= reaction %></span>
+            <span class="reaction-count text-gray-600"><%= count %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Message Time and Status -->
+      <div class="message-time-status">
+        <span class="bubble-timestamp"><%= message.created_at.strftime('%H:%M') %></span>
+        <% if message.outgoing? %>
+          <span class="message-status">
+            <%
+            # Message status logic based on age (mock implementation)
+              age_minutes = (Time.current - message.created_at) / 1.minute
+            if age_minutes < 5
+              status = :single  # Just sent
+            elsif age_minutes < 30
+              status = :double  # Delivered
+            else
+              status = :read    # Read (blue)
+            end
+          %>
+
+            <% case status %>
+            <% when :single %>
+            <!-- Single check mark - sent -->
+              <svg class="message-status-single" viewBox="0 0 16 15">
+                <path fill="currentColor" d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :double %>
+            <!-- Double check mark - delivered (gray) -->
+              <svg class="message-status-double" viewBox="0 0 16 15">
+              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033L6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% when :read %>
+            <!-- Double check mark - read (blue) -->
+              <svg class="message-status-read" viewBox="0 0 16 15">
+              <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033L6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l3.61 3.463c.143.14.361.125.484-.033L10.91 3.879a.366.366 0 0 0-.063-.51z"/>
+              </svg>
+            <% end %>
+          </span>
+        <% end %>
+      </div>
+  </div>
 </div>

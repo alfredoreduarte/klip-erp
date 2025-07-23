@@ -1,0 +1,217 @@
+<%= form_with model: product, local: true, multipart: true, class: "space-y-6" do |form| %>
+  <% if product.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-md p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc pl-5 space-y-1">
+              <% product.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+      <p class="mt-1 text-sm text-gray-500">Essential product details and identification.</p>
+    </div>
+    
+    <div class="px-6 py-4 space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= form.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :name, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Enter product name" %>
+        </div>
+        
+        <div>
+          <%= form.label :category, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :category, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "e.g., Electronics, Clothing, Food" %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= form.label :brand, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :brand, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Product brand or manufacturer" %>
+        </div>
+        
+        <div>
+          <%= form.label :status, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :status, 
+              options_for_select([
+                ['Active', 'active'],
+                ['Inactive', 'inactive'],
+                ['Discontinued', 'discontinued']
+              ], product.status),
+              {}, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+      </div>
+
+      <div>
+        <%= form.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_area :description, rows: 4,
+            class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+            placeholder: "Detailed product description..." %>
+      </div>
+
+      <div>
+        <%= form.label :image, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.file_field :image, 
+            accept: "image/*",
+            class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+        <p class="mt-1 text-sm text-gray-500">Upload a product image (JPG, PNG, GIF)</p>
+        <% if product.image.attached? %>
+          <div class="mt-2">
+            <%= image_tag product.image, class: "w-20 h-20 object-cover rounded-md border" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Pricing & Costs</h3>
+      <p class="mt-1 text-sm text-gray-500">Set base pricing and cost information.</p>
+    </div>
+    
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= form.label :base_price, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-sm">₲</span>
+            </div>
+            <%= form.number_field :base_price, step: 0.01, min: 0,
+                class: "w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "0.00" %>
+          </div>
+        </div>
+        
+        <div>
+          <%= form.label :cost_price, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-sm">₲</span>
+            </div>
+            <%= form.number_field :cost_price, step: 0.01, min: 0,
+                class: "w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "0.00" %>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Cost for profitability tracking</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Physical Properties</h3>
+      <p class="mt-1 text-sm text-gray-500">Dimensions and weight for shipping calculations.</p>
+    </div>
+    
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= form.label :weight, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="flex gap-2">
+            <%= form.number_field :weight, step: 0.01, min: 0,
+                class: "flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "0.00" %>
+            <%= form.select :weight_unit, 
+                options_for_select([
+                  ['kg', 'kg'],
+                  ['g', 'g'],
+                  ['lb', 'lb'],
+                  ['oz', 'oz']
+                ], product.weight_unit || 'kg'),
+                {}, { class: "px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+        </div>
+        
+        <div>
+          <%= form.label :tax_category, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :tax_category, 
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "e.g., Standard, Exempt, Reduced" %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div>
+          <%= form.label :length, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :length, step: 0.01, min: 0,
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Length" %>
+        </div>
+        
+        <div>
+          <%= form.label :width, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :width, step: 0.01, min: 0,
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Width" %>
+        </div>
+        
+        <div>
+          <%= form.label :height, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.number_field :height, step: 0.01, min: 0,
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+              placeholder: "Height" %>
+        </div>
+        
+        <div>
+          <%= form.label :dimension_unit, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :dimension_unit, 
+              options_for_select([
+                ['cm', 'cm'],
+                ['mm', 'mm'],
+                ['in', 'in'],
+                ['ft', 'ft']
+              ], product.dimension_unit || 'cm'),
+              {}, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Inventory Settings</h3>
+      <p class="mt-1 text-sm text-gray-500">Configure how inventory is tracked for this product.</p>
+    </div>
+    
+    <div class="px-6 py-4">
+      <div class="flex items-center">
+        <%= form.check_box :track_inventory, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+        <%= form.label :track_inventory, "Track inventory for this product", class: "ml-2 block text-sm text-gray-900" %>
+      </div>
+      <p class="mt-1 text-sm text-gray-500">When enabled, stock levels will be monitored and updated automatically.</p>
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
+    <%= link_to 'Cancel', product.persisted? ? product : products_path, 
+        class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+    <%= form.submit product.persisted? ? 'Update Product' : 'Create Product',
+        class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700" %>
+  </div>
+<% end %>

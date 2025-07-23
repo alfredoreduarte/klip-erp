@@ -1,0 +1,254 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Inventory Adjustments</h1>
+        <p class="text-sm text-gray-500 mt-1">Track all inventory changes and transactions</p>
+      </div>
+      
+      <div class="flex gap-3">
+        <%= link_to new_inventory_adjustment_path, 
+            class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          New Adjustment
+        <% end %>
+        
+        <%= link_to summary_inventory_adjustments_path, 
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"></path>
+          </svg>
+          View Summary
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Total Adjustments</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @total_adjustments %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Pending Approval</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @pending_approval %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-500">Adjustment Types</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @adjustment_types.count %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <%= form_with url: inventory_adjustments_path, method: :get, local: true, class: "p-4" do |form| %>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <%= form.select :type, 
+              options_for_select([['All Types', '']] + @adjustment_types.map { |key, name| [name, key] }, params[:type]),
+              {}, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+        
+        <div>
+          <%= form.select :approved, 
+              options_for_select([
+                ['All Status', ''],
+                ['Approved', 'true'],
+                ['Pending Approval', 'false']
+              ], params[:approved]),
+              {}, { class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+        
+        <div>
+          <%= form.text_field :sku, placeholder: "Search by SKU...", 
+              value: params[:sku],
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+        
+        <div>
+          <%= form.date_field :start_date, 
+              value: params[:start_date],
+              class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+      </div>
+      
+      <div class="flex justify-end mt-4 gap-2">
+        <%= link_to 'Clear', inventory_adjustments_path, class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" %>
+        <%= form.submit 'Apply Filters', class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Adjustments Table -->
+  <div class="bg-white shadow rounded-lg overflow-hidden">
+    <% if @adjustments.any? %>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @adjustments.each do |adjustment| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  <%= link_to adjustment.reference_number, adjustment, class: "hover:text-blue-600" %>
+                </div>
+                <% if adjustment.cost_impact %>
+                  <div class="text-xs text-gray-500">₲<%= number_with_delimiter(adjustment.cost_impact.abs) %></div>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  <%= link_to adjustment.product_variant.product.name, adjustment.product_variant.product, class: "hover:text-blue-600" %>
+                </div>
+                <div class="text-sm text-gray-500"><%= adjustment.product_variant.sku %></div>
+                <% if adjustment.product_variant.name.present? %>
+                  <div class="text-xs text-gray-400"><%= adjustment.product_variant.name %></div>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  <%= case adjustment.adjustment_type
+                      when 'purchase' then 'bg-green-100 text-green-800'
+                      when 'sale' then 'bg-blue-100 text-blue-800'
+                      when 'return' then 'bg-yellow-100 text-yellow-800'
+                      when 'shrinkage', 'damage' then 'bg-red-100 text-red-800'
+                      when 'count' then 'bg-purple-100 text-purple-800'
+                      else 'bg-gray-100 text-gray-800'
+                      end %>">
+                  <%= adjustment.adjustment_type_name %>
+                </span>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <span class="text-sm font-medium <%= adjustment.positive_adjustment? ? 'text-green-600' : 'text-red-600' %>">
+                    <%= adjustment.positive_adjustment? ? '+' : '' %><%= adjustment.quantity %>
+                  </span>
+                </div>
+                <div class="text-xs text-gray-500">
+                  <%= adjustment.quantity_before %> → <%= adjustment.quantity_after %>
+                </div>
+              </td>
+              
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900"><%= adjustment.reason %></div>
+                <% if adjustment.notes.present? %>
+                  <div class="text-xs text-gray-500 truncate max-w-xs" title="<%= adjustment.notes %>">
+                    <%= truncate(adjustment.notes, length: 50) %>
+                  </div>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if adjustment.approved? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Approved
+                  </span>
+                  <% if adjustment.approved_at %>
+                    <div class="text-xs text-gray-500 mt-1">
+                      <%= time_ago_in_words(adjustment.approved_at) %> ago
+                    </div>
+                  <% end %>
+                <% else %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Pending
+                  </span>
+                <% end %>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= adjustment.created_at.strftime('%m/%d/%Y') %>
+                <div class="text-xs text-gray-400">
+                  <%= adjustment.created_at.strftime('%I:%M %p') %>
+                </div>
+              </td>
+              
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2">
+                  <%= link_to 'View', adjustment, class: "text-blue-600 hover:text-blue-900" %>
+                  <% unless adjustment.approved? %>
+                    <%= link_to 'Edit', edit_inventory_adjustment_path(adjustment), class: "text-gray-600 hover:text-gray-900" %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <!-- Results Info -->
+      <div class="px-6 py-4 border-t border-gray-200 text-sm text-gray-500">
+        Showing <%= @adjustments.count %> adjustments
+      </div>
+
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No adjustments found</h3>
+        <p class="mt-1 text-sm text-gray-500">Start by creating your first inventory adjustment.</p>
+        <div class="mt-6">
+          <%= link_to new_inventory_adjustment_path, 
+              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" do %>
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Adjustment
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
