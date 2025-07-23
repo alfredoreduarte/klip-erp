@@ -71,6 +71,9 @@ Rails.application.configure do
   # Disable asset pipeline warnings in tests
   config.assets.quiet = true
 
+  # Suppress deprecation warnings for missing assets in tests
+  config.active_support.deprecation = :silence
+
   # Allow internal service calls during tests
   config.hosts << "store"
   config.hosts << "www.example.com"

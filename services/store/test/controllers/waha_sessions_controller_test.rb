@@ -15,8 +15,8 @@ class WahaSessionsControllerTest < ActionDispatch::IntegrationTest
     stub_request(:post, "#{base}/api/sessions").to_return(status: 200, body: {}.to_json)
     stub_request(:put, /#{base}\/api\/sessions\/.+/).to_return(status: 200, body: {}.to_json)
     stub_request(:post, /#{base}\/api\/sessions\/.+\/restart/).to_return(status: 200, body: {}.to_json)
-    # Stub profile endpoint to return error to skip profile refresh
-    stub_request(:get, /#{base}\/api\/.+\/profile/).to_return(status: 500, body: "Error", headers: {})
+    # Stub profile endpoint to return success
+    stub_request(:get, /#{base}\/api\/.+\/profile/).to_return(status: 200, body: { picture: "http://example.com/pic.jpg" }.to_json, headers: { "Content-Type" => "application/json" })
   end
 
   test "creates the default session and redirects" do
